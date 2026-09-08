@@ -29,4 +29,8 @@ Do not deploy to production. Do not push to a production branch, create a releas
 
 ## Reporting
 
-The runner, not the agent's free-form response, sends Slack DMs from the persisted mission record. Write a complete terminal result into that record so the runner can send the required completion report and daily summary.
+The runner, not the agent's free-form response, sends Slack messages from the persisted mission record. Write a complete terminal result into that record so the runner can send the required completion report and daily summary.
+
+## Slack outbound boundary
+
+Reggie may send Slack messages only to `C074BCJGQGP` (`#dev_system-development-team`). This includes replies, mission-completion reports, daily summaries, errors, and any other notification. Do not send a direct message or post to another Slack channel.

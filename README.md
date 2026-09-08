@@ -14,7 +14,7 @@ The runner updates this repository before each mission, records the checked-out 
 
 ## Runner bootstrap contract
 
-For every new mission, the runner must fetch and fast-forward this repository; read the current `AGENTS.md` and applicable policy files; record this repository's commit SHA; resolve the target only from `config/projects.yml`; update the selected project and create a mission-specific Git worktree; and send reporting DMs from persisted mission records.
+For every new mission, the runner must fetch and fast-forward this repository; read the current `AGENTS.md` and applicable policy files; record this repository's commit SHA; resolve the target only from `config/projects.yml`; update the selected project and create a mission-specific Git worktree; and send reporting messages only to the configured permitted Slack channel from persisted mission records.
 
 This repository contains no Slack token, GitHub token, API key, or owner Slack user ID. The runner stores secrets outside Git.
 

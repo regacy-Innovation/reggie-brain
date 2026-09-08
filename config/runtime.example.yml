@@ -1,6 +1,7 @@
 # Copy values to the runner's local secret configuration. Do not commit secrets.
 timezone: Asia/Tokyo
 daily_summary_time: "09:00"
-owner_slack_user_id: REPLACE_WITH_OWNER_SLACK_USER_ID
+permitted_slack_channel_id: C074BCJGQGP
+permitted_slack_channel_name: dev_system-development-team
 brain_repository_path: C:/Users/tomoy/Sites/reggie-brain
 projects_registry_path: C:/Users/tomoy/Sites/reggie-brain/config/projects.yml
