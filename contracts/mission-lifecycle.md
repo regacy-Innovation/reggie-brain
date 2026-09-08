@@ -15,7 +15,7 @@ The agent receives only the original request, selected project registration, bra
 
 ## Persisted outputs
 
-The runner must persist one mission record containing the mission ID and Slack message/thread identities; Reggie brain commit SHA; target project ID, local-path identity, origin URL, and starting revision; worktree path and branch name; terminal status (`succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`); final result, changed files, Git commit, pull request, deployment reference, blocker, and completion timestamp as applicable; plus completion-DM delivery state and daily-summary inclusion state.
+The runner must persist one mission record containing the mission ID and Slack message/thread identities; Reggie brain commit SHA; target project ID, local-path identity, origin URL, starting revision, permitted development push branch, and deployment environment; worktree path and branch name; terminal status (`succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`); final result, changed files, Git commit, pull request, deployment reference, blocker, and completion timestamp as applicable; plus completion-DM delivery state and daily-summary inclusion state.
 
 ## Downstream requirements
 

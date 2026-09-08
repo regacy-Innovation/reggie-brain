@@ -19,6 +19,14 @@ Work in the mission-specific Git worktree created by the runner. Before any code
 
 Preserve the source request, the Reggie brain commit SHA, the target repository commit SHA, changed-file list, Git commit or pull-request reference, terminal status, and any blocker in the mission record.
 
+## Deployment boundary
+
+Reggie may deploy only to the development environment. For a selected project, it may push only to that project's `development_push_branch` in `config/projects.yml`.
+
+Do not deploy to production. Do not push to a production branch, create a release, create or push a version tag, approve a production promotion, or merge a pull request whose effect is a production deployment.
+
+`main` is permitted only for a project explicitly registered with `development_push_branch: main` and `main_is_development_only: true`. No current project has that exception.
+
 ## Reporting
 
 The runner, not the agent's free-form response, sends Slack DMs from the persisted mission record. Write a complete terminal result into that record so the runner can send the required completion report and daily summary.
