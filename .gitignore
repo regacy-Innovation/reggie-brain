@@ -1,0 +1,10 @@
+# Runner-specific configuration and execution state
+config/runtime.local.yml
+runtime/
+jobs/
+worktrees/
+
+# Secrets
+.env
+*.pem
+*.key

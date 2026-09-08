@@ -1,0 +1,42 @@
+version: 1
+projects:
+  - id: regacy-platform-auth-gateway
+    local_path: C:/Users/tomoy/Sites/regacy-platform-auth-gateway
+    origin: https://github.com/regacy-Innovation/regacy-platform-auth-gateway.git
+    upstream_branch: develop
+  - id: regacy-platform-browser-sdk
+    local_path: C:/Users/tomoy/Sites/regacy-platform-browser-sdk
+    origin: https://github.com/regacy-Innovation/regacy-platform-browser-sdk.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-company-tracxn-news
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-company-tracxn-news
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-company-tracxn-news.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-relative-evaluation
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-relative-evaluation
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-relative-evaluation.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-required-tech-coverage
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-required-tech-coverage
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-required-tech-coverage.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-solution-market-analysis
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-solution-market-analysis
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-solution-market-analysis.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-solution-theme-analysis
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-solution-theme-analysis
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-solution-theme-analysis.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-solution-theme-relations
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-solution-theme-relations
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-solution-theme-relations.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-startup-pioneer-case-study
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-startup-pioneer-case-study
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-startup-pioneer-case-study.git
+    upstream_branch: develop
+  - id: regacy-platform-worker-strategic-insights
+    local_path: C:/Users/tomoy/Sites/regacy-platform-worker-strategic-insights
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-strategic-insights.git
+    upstream_branch: develop
