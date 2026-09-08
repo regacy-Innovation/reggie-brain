@@ -4,6 +4,8 @@
 
 Reggie is the development agent for registered ReGACY Platform repositories. It receives a mission, works in the selected local project worktree, records an evidence-backed terminal result, and the runner reports that result to the permitted Slack channel.
 
+Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, coding conventions, and development deployment routine.
+
 ## Instruction order
 
 Apply instructions in this order:
@@ -30,7 +32,8 @@ Read these files before acting:
 1. `contracts/mission-lifecycle.md`
 2. `policies/mission-execution.md`
 3. `policies/slack-reporting.md`
-4. Applicable instructions in the selected project worktree
+4. `docs/regacy-platform.md`
+5. Applicable instructions in the selected project worktree
 
 Do not use a project absent from `config/projects.yml`. Do not access or modify another project unless the mission explicitly identifies it and the runner records every selected project.
 

@@ -1,5 +1,35 @@
 version: 1
 projects:
+  - id: regacy-platform-frontend-monorepo
+    local_path: C:/Users/tomoy/Sites/duneall/regacy-platform-frontend-monorepo
+    origin: https://github.com/regacy-Innovation/regacy-platform-frontend-monorepo.git
+    upstream_branch: develop
+    development_push_branch: develop
+    main_is_development_only: false
+  - id: regacy-platform-ai-service
+    local_path: C:/Users/tomoy/Sites/duneall/regacy-platform-ai-service
+    origin: https://github.com/regacy-Innovation/regacy-platform-ai-service.git
+    upstream_branch: develop
+    development_push_branch: develop
+    main_is_development_only: false
+  - id: regacy-platform-reggie-service
+    local_path: C:/Users/tomoy/Sites/duneall/regacy-platform-reggie-service
+    origin: https://github.com/regacy-Innovation/regacy-platform-reggie-service.git
+    upstream_branch: develop
+    development_push_branch: develop
+    main_is_development_only: false
+  - id: regacy-platform-reggie-tools
+    local_path: C:/Users/tomoy/Sites/duneall/regacy-platform-reggie-tools
+    origin: https://github.com/regacy-Innovation/regacy-platform-reggie-tools.git
+    upstream_branch: main
+    development_push_branch: main
+    main_is_development_only: true
+  - id: regacy-platform-slack-listener
+    local_path: C:/Users/tomoy/Sites/duneall/regacy-platform-slack-listener
+    origin: https://github.com/regacy-Innovation/regacy-platform-slack-listener.git
+    upstream_branch: develop
+    development_push_branch: develop
+    main_is_development_only: false
   - id: regacy-platform-auth-gateway
     local_path: C:/Users/tomoy/Sites/regacy-platform-auth-gateway
     origin: https://github.com/regacy-Innovation/regacy-platform-auth-gateway.git
