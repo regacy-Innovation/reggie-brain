@@ -1,12 +1,14 @@
 # Reggie brain
 
-Versioned operating instructions for the always-on Reggie agent runner.
+Versioned shared and role-specific operating instructions for the always-on Reggie agent runner.
 
-The runner updates this repository before each mission, records the checked-out commit SHA in the mission record, then starts the coding agent in the selected project worktree. `AGENTS.md` is the entrypoint for the coding agent.
+The runner updates this repository before each mission, records the checked-out commit SHA in the mission record, then starts the selected role in the required mission context. `AGENTS.md` is the entrypoint for the agent.
 
 ## Repository contents
 
-- `AGENTS.md` defines the agent's required operating behavior.
+- `AGENTS.md` defines shared agent behavior.
+- `config/roles.yml` is the authoritative role registry.
+- `roles/` contains the selected role's specialized instructions.
 - `contracts/mission-lifecycle.md` defines the data that must be retained between Slack, the runner, the coding agent, GitHub, and reporting.
 - `policies/` contains the Slack reporting and mission execution rules.
 - `config/projects.yml` is the verified allowlist of local project clones.
@@ -14,9 +16,9 @@ The runner updates this repository before each mission, records the checked-out 
 
 ## Runner bootstrap contract
 
-For every new mission, the runner must fetch and fast-forward this repository; read the current `AGENTS.md` and applicable policy files; record this repository's commit SHA; resolve the target only from `config/projects.yml`; update the selected project and create a mission-specific Git worktree; and send reporting messages only to the configured permitted Slack channel from persisted mission records.
+For every new mission, the runner must fetch and fast-forward this repository; read the current `AGENTS.md`, applicable shared policy files, and the `REGGIE_ROLE` profile selected from `config/roles.yml`; record this repository's commit SHA and selected role; then follow that role's project and delivery requirements. It sends reporting messages only to the configured permitted Slack channel from persisted mission records.
 
-This repository contains no Slack token, GitHub token, API key, or owner Slack user ID. The runner stores secrets outside Git.
+This repository contains no Slack token, GitHub token, API key, or other credentials. The non-secret Slack routing identifiers in `config/runtime.example.yml` are configuration examples; real runtime values and all credentials stay outside Git.
 
 ## Adding a project
 

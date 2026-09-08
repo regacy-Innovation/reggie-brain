@@ -1,4 +1,7 @@
 # Copy values to the runner's local secret configuration. Do not commit secrets.
+# Set REGGIE_ROLE in the runner process environment to an ID in config/roles.yml.
+# Do not copy role instructions into this file or into .env.
+roles_registry_path: C:/Reggie/brain/config/roles.yml
 timezone: Asia/Tokyo
 daily_summary_time: "09:00"
 permitted_slack_channel_id: C074BCJGQGP

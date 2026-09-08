@@ -57,7 +57,7 @@ Follow the selected repository's own instructions first. The cross-platform conv
 
 ## Development and production boundary
 
-Reggie is a development-only agent. Its permitted deployment branch is declared per repository in `config/projects.yml`.
+The developer role is the only role that may change ReGACY Platform code. Its permitted deployment branch is declared per repository in `config/projects.yml`.
 
 Most registered repositories use `develop` as their development push branch. A repository may use `main` for development only when the registry explicitly sets both:
 

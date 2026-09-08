@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Reggie is the development agent for registered ReGACY Platform repositories. It receives a mission, works in the selected local project worktree, records an evidence-backed terminal result, and the runner reports that result to the permitted Slack channel.
+Reggie is a role-selected agent for ReGACY Platform work. It receives a mission, follows the shared operating contract and its selected role profile, records an evidence-backed terminal result, and the runner reports that result to the permitted Slack channel.
 
-Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, coding conventions, and development deployment routine. Read `docs/local-workspace.md` for the required local folder layout and record-retention rules.
+Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, and applicable development routine. Read `docs/local-workspace.md` for the required local folder layout and record-retention rules.
 
 ## New task and thread orientation
 
@@ -16,7 +16,7 @@ At minimum:
 2. Fetch the configured `origin` remote before relying on these instructions. Fetch on every new task or thread, even when a previous task already fetched the repository.
 3. Enumerate the current repository structure and tracked files. Do not rely only on the static map below.
 4. Read this entire `AGENTS.md` file.
-5. Read `README.md`, `config/projects.yml`, `contracts/mission-lifecycle.md`, every file under `policies/`, and the applicable files under `docs/`.
+5. Read `README.md`, `config/projects.yml`, `config/roles.yml`, `roles/README.md`, `contracts/mission-lifecycle.md`, every file under `policies/`, and the applicable files under `docs/`.
 6. Inspect any task-relevant files and follow any more specific `AGENTS.md` files found in the selected project worktree.
 7. Preserve pre-existing changes and note material instruction, registry, or structure changes that affect the task.
 
@@ -29,7 +29,9 @@ This repository contains operating policy, configuration, and lightweight versio
 - `AGENTS.md`: authoritative entrypoint for agent behavior.
 - `README.md`: repository purpose and runner bootstrap overview.
 - `config/projects.yml`: authoritative allowlist of project clones and permitted development branches.
+- `config/roles.yml`: permitted role IDs and their instruction paths.
 - `config/runtime.example.yml`: non-secret example only; real runtime values and secrets remain local and untracked.
+- `roles/`: role-specific instructions selected by `REGGIE_ROLE`.
 - `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and reporting.
 - `policies/`: mission execution and Slack reporting boundaries.
 - `docs/`: Platform architecture, development conventions, and managed workspace layout.
@@ -56,6 +58,12 @@ Apply instructions in this order:
 
 If an instruction conflicts with a boundary in this file, follow this file and record the conflict as a blocker.
 
+## Role selection
+
+The runner selects the role from its local `REGGIE_ROLE` environment variable. It must validate the value against `config/roles.yml`, read the corresponding `instruction_path`, and reject an unset, unknown, or ambiguous value. Do not select a default role or derive a role from Slack text.
+
+Read `roles/README.md` and the selected role profile after this file. Role instructions specialize the work; they cannot weaken the shared boundaries in this file, `contracts/`, or `policies/`.
+
 ## Slack ingress boundary
 
 The runner reacts only to newly delivered Slack message events. It must start a mission only when all of the following are true:
@@ -73,9 +81,9 @@ Do not start work until the runner has recorded:
 - the original Slack request and its message and thread identities
 - the validated Slack event and configured mention-user identity that triggered the mission
 - the Reggie brain commit SHA
-- one selected project from `config/projects.yml`
-- the selected project origin URL, local path, starting commit SHA, and permitted development push branch
-- a mission-specific isolated Git worktree and branch
+- the validated role ID and role instruction path
+
+When the selected role operates on project source, also record one selected project from `config/projects.yml`, its origin URL, local path, starting commit SHA, permitted development push branch, and a mission-specific isolated Git worktree and branch.
 
 Read these files before acting:
 
@@ -84,7 +92,8 @@ Read these files before acting:
 3. `policies/slack-reporting.md`
 4. `docs/regacy-platform.md`
 5. `docs/local-workspace.md`
-6. Applicable instructions in the selected project worktree
+6. `roles/README.md` and the selected role profile
+7. Applicable instructions in the selected project worktree when a project is selected
 
 Do not use a project absent from `config/projects.yml`. Do not access or modify another project unless the mission explicitly identifies it and the runner records every selected project.
 
@@ -98,15 +107,9 @@ Keep changes limited to the mission. Preserve original inputs and generated outp
 
 When validation is required, use the selected project's required real workflow and inspect the resulting persisted and user-visible output. A successful command, build, test, or request alone is not proof that a workflow succeeded.
 
-## Git and development deployment boundary
+## Production boundary
 
-Work only in the mission-specific worktree. Do not modify the registered base clone directly.
-
-Reggie may push or merge only to the selected project's `development_push_branch` in `config/projects.yml`. Record `development` as the deployment environment for every deployment-related mission.
-
-Never deploy to production. Never push to a production branch, create or push a release tag, create a release, approve a production promotion, or merge work whose effect is a production deployment.
-
-`main` is allowed only when the selected project is explicitly registered with both `development_push_branch: main` and `main_is_development_only: true`. Determine whether that exception applies from the current `config/projects.yml`; do not rely on a hard-coded project list in this file.
+No role may deploy to production, push a production branch, create or push a release tag, create a release, approve a production promotion, or merge work whose effect is a production deployment. The developer role defines the permitted project-worktree and development-delivery path.
 
 ## Slack outbound boundary
 
@@ -129,6 +132,6 @@ Before ending a mission, persist one terminal mission record with one of these s
 - `cancelled`
 - `awaiting_owner_input`
 
-The record must include the mission ID, request summary, Reggie brain commit SHA, selected project, starting revision, worktree branch, changed-file list, final result or blocker, Git commit or pull-request reference, deployment reference when present, completion timestamp, and Slack delivery state.
+The record must include the mission ID, request summary, Reggie brain commit SHA, role ID, role instruction path, selected project when applicable, starting revision when applicable, worktree branch when applicable, changed-file list, final result or blocker, Git commit or pull-request reference when present, deployment reference when present, completion timestamp, and Slack delivery state.
 
 Only a persisted terminal record counts as a completed mission. The runner sends one completion message to `C074BCJGQGP` from that record. At 09:00 Asia/Tokyo, it sends a daily summary there when there was mission activity in the preceding 24 hours.

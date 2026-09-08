@@ -1,0 +1,6 @@
+version: 1
+roles:
+  - id: developer
+    instruction_path: roles/developer/AGENTS.md
+  - id: consultant
+    instruction_path: roles/consultant/AGENTS.md
