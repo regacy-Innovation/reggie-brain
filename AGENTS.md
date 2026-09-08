@@ -6,6 +6,45 @@ Reggie is the development agent for registered ReGACY Platform repositories. It 
 
 Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, coding conventions, and development deployment routine. Read `docs/local-workspace.md` for the required local folder layout and record-retention rules.
 
+## New task and thread orientation
+
+At the beginning of every new agent task or conversation thread, inspect the current repository before answering or acting. Do this again even if another task or thread inspected the repository previously; the checkout and instructions may have changed.
+
+At minimum:
+
+1. Confirm the working directory and inspect `git status` without modifying the checkout.
+2. Fetch the configured `origin` remote before relying on these instructions. Fetch on every new task or thread, even when a previous task already fetched the repository.
+3. Enumerate the current repository structure and tracked files. Do not rely only on the static map below.
+4. Read this entire `AGENTS.md` file.
+5. Read `README.md`, `config/projects.yml`, `contracts/mission-lifecycle.md`, every file under `policies/`, and the applicable files under `docs/`.
+6. Inspect any task-relevant files and follow any more specific `AGENTS.md` files found in the selected project worktree.
+7. Preserve pre-existing changes and note material instruction, registry, or structure changes that affect the task.
+
+For a simple repository-inspection or documentation task that is not a runner mission, perform the orientation above but do not invent Slack event data, mission state, a selected project, or a mission worktree. The mission requirements below apply when a mission is actually being executed.
+
+## Repository map
+
+This repository contains operating policy, configuration, and lightweight versioned evidence; it does not contain the ReGACY Platform application source or the runner implementation.
+
+- `AGENTS.md`: authoritative entrypoint for agent behavior.
+- `README.md`: repository purpose and runner bootstrap overview.
+- `config/projects.yml`: authoritative allowlist of project clones and permitted development branches.
+- `config/runtime.example.yml`: non-secret example only; real runtime values and secrets remain local and untracked.
+- `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and reporting.
+- `policies/`: mission execution and Slack reporting boundaries.
+- `docs/`: Platform architecture, development conventions, and managed workspace layout.
+- `missions/`: versioned lightweight terminal mission records organized by date and mission ID.
+- `daily-reports/`: immutable, versioned daily activity summaries.
+- `ideas/`: explicitly captured idea records moving through `inbox`, `accepted`, and `archived`.
+
+Treat paths in `config/projects.yml` and `config/runtime.example.yml` as runner configuration values. Do not rewrite registered paths merely because the current inspection occurs on another operating system. Keep runtime state, credentials, raw logs, large or binary artifacts, and project source out of this repository as required by `docs/local-workspace.md` and `.gitignore`.
+
+## Brain synchronization and publication
+
+Treat the configured `origin` remote as the source for the current Reggie brain. Fetch it at the beginning of every task or thread. Before starting a runner mission, fast-forward to the fetched revision when the worktree is clean, then record the resulting commit SHA. If local changes prevent a safe update, preserve them and resolve the divergence before relying on a claim that the brain is current.
+
+Every intentional change to this repository must be validated, committed, and pushed to the configured remote before the task ends. Stage only the files changed for the task; do not include unrelated local edits. After pushing, verify that the pushed branch contains the commit. If committing or pushing fails, preserve the change and report the unpublished state as a blocker rather than claiming the update is complete.
+
 ## Instruction order
 
 Apply instructions in this order:
@@ -67,7 +106,7 @@ Reggie may push or merge only to the selected project's `development_push_branch
 
 Never deploy to production. Never push to a production branch, create or push a release tag, create a release, approve a production promotion, or merge work whose effect is a production deployment.
 
-`main` is allowed only when the selected project is explicitly registered with both `development_push_branch: main` and `main_is_development_only: true`. No current registered project has that exception.
+`main` is allowed only when the selected project is explicitly registered with both `development_push_branch: main` and `main_is_development_only: true`. Determine whether that exception applies from the current `config/projects.yml`; do not rely on a hard-coded project list in this file.
 
 ## Slack outbound boundary
 
