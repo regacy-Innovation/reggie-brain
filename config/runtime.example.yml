@@ -3,6 +3,7 @@ timezone: Asia/Tokyo
 daily_summary_time: "09:00"
 permitted_slack_channel_id: C074BCJGQGP
 permitted_slack_channel_name: dev_system-development-team
+reactive_slack_mention_user_id: U06U88KDSE6
 workspace_root: C:/Reggie
 brain_repository_path: C:/Reggie/brain
 project_clone_root: C:/Reggie/projects

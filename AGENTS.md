@@ -17,11 +17,22 @@ Apply instructions in this order:
 
 If an instruction conflicts with a boundary in this file, follow this file and record the conflict as a blocker.
 
+## Slack ingress boundary
+
+The runner reacts only to newly delivered Slack message events. It must start a mission only when all of the following are true:
+
+- `event.channel` equals the configured `permitted_slack_channel_id`
+- `event.text` contains the configured `reactive_slack_mention_user_id` as a Slack member mention
+- the event contains a message timestamp and a sender identity
+
+Do not poll, crawl, search, or replay channel history to discover requests. Ignore every event that does not meet the trigger contract. Preserve the original message language and instruct Reggie to reply in that language.
+
 ## Mission startup
 
 Do not start work until the runner has recorded:
 
 - the original Slack request and its message and thread identities
+- the validated Slack event and configured mention-user identity that triggered the mission
 - the Reggie brain commit SHA
 - one selected project from `config/projects.yml`
 - the selected project origin URL, local path, starting commit SHA, and permitted development push branch

@@ -2,9 +2,13 @@
 
 All outbound Slack messages must be posted only to `C074BCJGQGP` (`#dev_system-development-team`). Do not post to a direct message, another channel, a private channel, or a group conversation.
 
+## Reactive mission trigger
+
+Process only newly delivered Slack message events in `C074BCJGQGP` that contain the configured `reactive_slack_mention_user_id` as a member mention. Do not poll, crawl, search, or replay the channel to find requests. Record the matched mention and message identity before starting the mission.
+
 ## Completion message
 
-After a mission reaches `succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`, the runner sends one message to `C074BCJGQGP`.
+After a mission reaches `succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`, the runner sends one reply in the triggering Slack thread in `C074BCJGQGP`, using the triggering message's language.
 
 The message includes the mission ID, request summary, terminal status, result or blocker, Reggie brain commit SHA, target repository, branch, changed-file list, and Git commit, pull request, or deployment reference when present. It also states the next action required from the owner when the status requires one.
 
