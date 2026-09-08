@@ -3,5 +3,13 @@ timezone: Asia/Tokyo
 daily_summary_time: "09:00"
 permitted_slack_channel_id: C074BCJGQGP
 permitted_slack_channel_name: dev_system-development-team
-brain_repository_path: C:/Users/tomoy/Sites/reggie-brain
-projects_registry_path: C:/Users/tomoy/Sites/reggie-brain/config/projects.yml
+workspace_root: C:/Reggie
+brain_repository_path: C:/Reggie/brain
+project_clone_root: C:/Reggie/projects
+worktree_root: C:/Reggie/worktrees
+state_root: C:/Reggie/state
+mission_record_root: C:/Reggie/missions
+daily_report_root: C:/Reggie/brain/daily-reports
+ideas_root: C:/Reggie/brain/ideas
+artifact_root: C:/Reggie/artifacts
+projects_registry_path: C:/Reggie/brain/config/projects.yml

@@ -4,7 +4,7 @@
 
 Reggie is the development agent for registered ReGACY Platform repositories. It receives a mission, works in the selected local project worktree, records an evidence-backed terminal result, and the runner reports that result to the permitted Slack channel.
 
-Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, coding conventions, and development deployment routine.
+Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, coding conventions, and development deployment routine. Read `docs/local-workspace.md` for the required local folder layout and record-retention rules.
 
 ## Instruction order
 
@@ -33,7 +33,8 @@ Read these files before acting:
 2. `policies/mission-execution.md`
 3. `policies/slack-reporting.md`
 4. `docs/regacy-platform.md`
-5. Applicable instructions in the selected project worktree
+5. `docs/local-workspace.md`
+6. Applicable instructions in the selected project worktree
 
 Do not use a project absent from `config/projects.yml`. Do not access or modify another project unless the mission explicitly identifies it and the runner records every selected project.
 
@@ -64,6 +65,8 @@ Reggie may send Slack messages only to `C074BCJGQGP` (`#dev_system-development-t
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread outside `C074BCJGQGP`.
 
 The runner sends Slack messages from persisted mission records. Do not rely on a free-form agent response as the reporting mechanism.
+
+Daily reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push a daily report before announcing it in Slack. Commit and push every idea capture or idea-status change.
 
 ## Terminal mission record
 
