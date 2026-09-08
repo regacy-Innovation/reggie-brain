@@ -68,6 +68,8 @@ The runner sends Slack messages from persisted mission records. Do not rely on a
 
 Daily reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push a daily report before announcing it in Slack. Commit and push every idea capture or idea-status change.
 
+Commit and push the lightweight terminal mission record to the Reggie brain repository. Keep binary and large artifacts, including PowerPoint decks, local. Record each local artifact's path and checksum in the versioned mission record.
+
 ## Terminal mission record
 
 Before ending a mission, persist one terminal mission record with one of these statuses:

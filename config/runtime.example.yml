@@ -8,7 +8,7 @@ brain_repository_path: C:/Reggie/brain
 project_clone_root: C:/Reggie/projects
 worktree_root: C:/Reggie/worktrees
 state_root: C:/Reggie/state
-mission_record_root: C:/Reggie/missions
+mission_record_root: C:/Reggie/brain/missions
 daily_report_root: C:/Reggie/brain/daily-reports
 ideas_root: C:/Reggie/brain/ideas
 artifact_root: C:/Reggie/artifacts

@@ -9,11 +9,11 @@ C:\Reggie\
   brain\                 # Clone of the Reggie brain repository
     daily-reports\        # Versioned daily report snapshots
     ideas\                # Versioned idea records and their status
+    missions\             # Versioned lightweight mission records
   projects\              # Clean registered base clones; never edit directly
   worktrees\             # One isolated Git worktree for each active mission
   state\                 # Durable runner state and mission database
-  missions\              # Per-mission evidence, result, and non-secret logs
-  artifacts\             # Mission outputs that are not source code
+  artifacts\             # Local binary and large mission outputs
   scratch\               # Re-creatable temporary files; never authoritative
 ```
 
@@ -51,8 +51,8 @@ evidence has been persisted.
 `state\` is the durable source for runner state. The mission database records
 the fields defined by `contracts/mission-lifecycle.md`.
 
-`missions\YYYY\MM\DD\<mission-id>\` contains a readable, non-secret evidence
-bundle for that mission:
+`brain\missions\YYYY\MM\DD\<mission-id>\` contains the versioned, readable,
+non-secret evidence bundle for that mission:
 
 ```text
 missions\YYYY\MM\DD\<mission-id>\
@@ -60,12 +60,12 @@ missions\YYYY\MM\DD\<mission-id>\
   context.json            # Brain SHA, project IDs, starting revisions, branches
   result.md               # Terminal result, evidence, Git and deployment references
   changed-files.txt       # Changed paths only
-  logs\                   # Non-secret runner and agent logs
-  artifacts\              # Pointers or copied non-secret mission artifacts
+  artifacts.md            # References to local binary artifacts and checksums
 ```
 
-Do not store credentials, API tokens, complete database exports, unrelated
-customer data, or duplicate project source files in a mission bundle.
+Commit and push the terminal mission bundle to the Reggie brain repository. Do
+not store credentials, API tokens, complete database exports, unrelated customer
+data, duplicate project source files, raw logs, or binary artifacts in it.
 
 ## Daily reports
 
@@ -109,13 +109,18 @@ Do not silently convert an idea into a mission or silently delete an idea.
 
 ## Artifacts and scratch files
 
-Store generated non-code artifacts under `artifacts\YYYY\MM\<mission-id>\` and
-reference their paths in the mission record. Keep large reproducible outputs in
-their owning project or approved artifact store when that repository requires it.
+Store generated binary or large artifacts under
+`artifacts\YYYY\MM\<mission-id>\`. This includes PowerPoint decks, PDFs,
+images, videos, archives, large spreadsheets, and other generated binary files.
+
+For every local artifact, write a versioned reference in the mission bundle with
+its mission ID, filename, local path, content type, creation time, and checksum.
+Keep reproducible outputs in their owning project or approved artifact store
+when that repository requires it.
 
 `scratch\` is only for re-creatable temporary work. Never place the sole copy
 of instructions, a mission record, a report, an idea, source code, or an
-artifact there.
+artifact reference there.
 
 ## Secrets and personal notes
 
