@@ -77,6 +77,8 @@ Do not process a message twice or replay older channel history. Ignore every mes
 
 Until a programmatic authenticated Slack connection is configured, an owner-approved scheduled heartbeat may use Computer Use as temporary ingress. It may inspect only channels explicitly configured in the local runner configuration, through the already authenticated `Reggie Agent` Slack user interface. The runner must persist a per-channel cursor, accept only newer messages from another sender with an explicit visible `@Reggie Agent` mention, and create one mission record before work starts. Do not use Computer Use to inspect unconfigured channels, replay history, process Reggie's own replies, or bypass the cursor. Replace this temporary ingress path with the authenticated Slack connection when it becomes available.
 
+When installing this temporary ingress on another machine, configure its scheduler in Asia/Tokyo time: run the Slack check every 10 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes from 18:00 inclusive until 09:00 exclusive. Do not create overlapping schedules at their boundary.
+
 ## Mission startup
 
 Do not start work until the runner has recorded:

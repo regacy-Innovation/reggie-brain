@@ -10,6 +10,8 @@ Continuously poll only the locally configured permitted channels through Reggie'
 
 Until a programmatic authenticated Slack connection is configured, an owner-approved scheduled heartbeat may use Computer Use to inspect explicitly configured permitted channels in the already authenticated `Reggie Agent` Slack user interface. It must submit each candidate to the local runner, which verifies the channel allowlist, another sender, explicit visible `@Reggie Agent` mention, immutable Slack permalink timestamp, and persisted per-channel cursor before creating a mission. Do not inspect unconfigured channels, replay history, process a message twice or Reggie's own reply, or use Computer Use to bypass the cursor. Replace this temporary ingress path with the authenticated Slack connection when it becomes available.
 
+For installation on another machine, schedule the temporary ingress in Asia/Tokyo time: every 10 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes outside that window. The schedules must not overlap.
+
 ## Completion message
 
 After each execution, Reggie sends one result reply in the triggering Slack thread, using the triggering message's language. It asks the requester to reply in that thread with an explicit `@Reggie Agent` mention and state whether the result is satisfactory.

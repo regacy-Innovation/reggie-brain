@@ -5,6 +5,15 @@
     "workspaceId": "T00000000",
     "agentDisplayName": "Reggie Agent",
     "agentUserId": "U00000000",
+    "polling": {
+      "timezone": "Asia/Tokyo",
+      "officeHours": {
+        "start": "09:00",
+        "end": "18:00",
+        "intervalMinutes": 10
+      },
+      "outsideOfficeHoursIntervalMinutes": 30
+    },
     "permittedChannels": [
       {
         "id": "C00000000",
