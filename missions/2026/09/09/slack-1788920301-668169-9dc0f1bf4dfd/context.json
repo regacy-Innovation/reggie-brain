@@ -1,0 +1,13 @@
+{
+  "missionId": "slack-1788920301-668169-9dc0f1bf4dfd",
+  "ingress": "computer-use",
+  "brainSha": "8b4bb4dfad1b6ad30ff6ac9faea556e6a3274fa2",
+  "roleId": "consultant",
+  "roleInstructionPath": "roles/consultant/AGENTS.md",
+  "workspaceId": "T034M9GSSA3",
+  "channelId": "C0C0A79HR3N",
+  "channelName": "sys_reggie",
+  "messageTs": "1788920301.668169",
+  "threadPermalink": "https://regacy-innovation.slack.com/archives/C0C0A79HR3N/p1788919792953519",
+  "createdAt": "2026-09-09T02:21:26.844Z"
+}
