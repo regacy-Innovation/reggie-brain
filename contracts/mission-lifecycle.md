@@ -4,7 +4,7 @@
 
 | Input | Authority | Required meaning |
 | --- | --- | --- |
-| Slack request | Newly polled Slack message stored by the agent | Original plain request text, sender, channel, message timestamp, thread timestamp, original message language, matched Reggie member ID even when Slack exposes it as a separate link, and attached Slack file IDs, names, and MIME types |
+| Slack request | Newly polled Slack message stored by the agent | Triggering message text, sender, channel, message timestamp, thread timestamp, original message language, matched Reggie member ID even when Slack exposes it as a separate link, the thread-root message identity, sender, and original plain request text when the trigger is a reply, and attached Slack file IDs, names, and MIME types |
 | Slack trigger configuration | Local agent configuration | Permitted channel IDs, the `@Reggie Agent` member identity or temporary Computer Use display-name match, and the persisted polling cursor |
 | Brain revision | Reggie brain Git commit | Exact instructions used for this mission |
 | Role selection | `REGGIE_ROLE` validated against `config/roles.yml` | Role ID and Git-versioned role instruction path used for this mission |
@@ -20,7 +20,9 @@ The agent receives only the original request, the instruction to reply in the or
 
 ## Persisted outputs
 
-The runner must persist one mission record containing the mission ID; Slack message/thread identities; matched configured member mention; Reggie brain commit SHA; role ID and role instruction path; target project ID, local-path identity, origin URL, starting revision, permitted development push branch, and deployment environment when applicable; worktree path and branch name when applicable; every acknowledgement, progress update, completion reply, and plan change with its Slack message identity and delivery state; every iteration number, result, evaluation request, feedback message identity, and approval or revision outcome; terminal status (`succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`); final result, changed files, Git commit, pull request, deployment reference, blocker, and completion timestamp as applicable; plus delivery state for the permitted Slack channel and daily-summary inclusion state. For a web-system bug fix, include the before and after video artifact paths, checksums, and pull-request attachment references.
+The runner must persist one mission record containing the mission ID; Slack message/thread identities; matched configured member mention; the triggering message and retained thread-root request when applicable; Reggie brain commit SHA; role ID and role instruction path; target project ID, local-path identity, origin URL, starting revision, permitted development push branch, and deployment environment when applicable; worktree path and branch name when applicable; every acknowledgement, progress update, completion reply, and plan change with its Slack message identity and delivery state; every iteration number, result, evaluation request, feedback message identity, and approval or revision outcome; terminal status (`succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`); final result, changed files, Git commit, pull request, deployment reference, blocker, and completion timestamp as applicable; plus delivery state for the permitted Slack channel and daily-summary inclusion state. For a web-system bug fix, include the before and after video artifact paths, checksums, and pull-request attachment references.
+
+When a mission is `awaiting_owner_input`, a newer explicit mention from the original requester in the same Slack thread may resume that mission. The runner must validate that event, retain it as the next iteration's owner input, apply the currently selected registered role, and return the same mission to `queued`; the agent must not create a replacement mission that loses the original request.
 
 ## Downstream requirements
 

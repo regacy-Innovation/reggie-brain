@@ -10,6 +10,8 @@ Continuously poll only the locally configured permitted channels through Reggie'
 
 Until a programmatic authenticated Slack connection is configured, an owner-approved scheduled heartbeat may use Computer Use to inspect explicitly configured permitted channels in the already authenticated `Reggie Agent` Slack user interface. For every qualifying explicit mention, add one `:emo_roger:` reaction from Reggie before submitting the candidate; if Reggie's reaction is already present, do not add it again. This is an immediate acknowledgement, remains valid when the runner later ignores or rejects the candidate, and does not replace the terminal thread reply. The local runner verifies the channel allowlist, another sender, explicit visible `@Reggie Agent` mention, immutable Slack permalink timestamp, and persisted per-channel cursor before creating a mission. When Slack exposes the mention as a separate member link, record `mentionMatched`, the exact mentioned member ID, and the original plain text separately; do not fabricate display-name text. Do not inspect unconfigured channels, replay history, process a message twice or Reggie's own reply, or use Computer Use to bypass the cursor. Replace this temporary ingress path with the authenticated Slack connection when it becomes available.
 
+The reaction acknowledges receipt only and must never be used as the answer to a question. For a yes-or-no question, begin the first substantive reply with an explicit evidence-backed `yes` or `no` in the requester's language. When the qualifying message is a thread reply, capture the root message identity, sender, and original plain text with the candidate. Determine whether the root request is complete from persisted mission evidence. If it is incomplete, preserve it as the mission's actionable request and use the newer reply as follow-up context; a status question does not supersede or cancel the root work.
+
 For installation on another machine, schedule the temporary ingress in Asia/Tokyo time: every 10 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes outside that window. The schedules must not overlap.
 
 ## Mission communication phases
@@ -21,6 +23,8 @@ While that work is in progress, send a progress update when a material stage has
 Record every acknowledgement, progress update, and completion reply with its Slack message identity and delivery state in the mission evidence.
 
 When the original requester sends a newer explicit `@Reggie Agent` reply in the active mission thread that changes the request or plan, record it as a plan change for that mission rather than creating a new mission. Apply the changed instruction, revise the remaining plan, and acknowledge the revised plan in the same thread before continuing. If the changed instruction conflicts with a required boundary, explain the blocker and request the necessary decision.
+
+When a newer reply asks whether earlier work is complete, answer the status question directly from persisted evidence. If the answer is no and the earlier request remains actionable, continue or resume that request under the same thread context instead of treating the status check as the entire mission.
 
 ## Completion message
 

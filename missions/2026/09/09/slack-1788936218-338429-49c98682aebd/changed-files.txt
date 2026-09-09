@@ -1,0 +1,6 @@
+shared/helpers/listNameSave.test.ts
+shared/helpers/listNameSave.ts
+shared/locales/en.json
+shared/locales/ja.json
+shared/locales/zh.json
+shared/ui/ListNameEditable.svelte

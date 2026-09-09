@@ -8,7 +8,7 @@ const defaultConfigPath = join(brainPath, 'config', 'runtime.local.json');
 const defaultStatePath = join(brainPath, 'runtime', 'poll-state.json');
 
 function usage() {
-  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | record-update --mission <id> --phase <acknowledged|progress|plan_changed|completed> --message-id <id> --delivery-state <state> --summary-file <file> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
+  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | resume --mission <id> --event <file> | record-update --mission <id> --phase <acknowledged|progress|plan_changed|completed> --message-id <id> --delivery-state <state> --summary-file <file> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
 }
 
 function parseArguments(argumentsList) {
@@ -146,7 +146,10 @@ function writeMissionBundle(mission, config) {
   const [year, month, day] = dateParts();
   const directory = join(brainPath, 'missions', year, month, day, mission.id);
   mkdirSync(directory, { recursive: true });
-  writeFileSync(join(directory, 'request.md'), `# Slack request\n\n- Channel: ${mission.channelId}\n- Message permalink: ${mission.permalink}\n- Thread permalink: ${mission.threadPermalink}\n- Sender: ${mission.senderId}\n- Reggie mention verified: yes\n\n${mission.text}\n`);
+  const threadRootSection = mission.threadRoot
+    ? `\n## Thread root request\n\n- Root permalink: ${mission.threadRoot.permalink}\n- Root sender: ${mission.threadRoot.senderId}\n\n${mission.threadRoot.text}\n`
+    : '';
+  writeFileSync(join(directory, 'request.md'), `# Slack request\n\n- Channel: ${mission.channelId}\n- Message permalink: ${mission.permalink}\n- Thread permalink: ${mission.threadPermalink}\n- Sender: ${mission.senderId}\n- Reggie mention verified: yes\n\n## Triggering message\n\n${mission.text}\n${threadRootSection}`);
   writeJsonAtomically(join(directory, 'context.json'), {
     missionId: mission.id,
     ingress: 'computer-use',
@@ -206,6 +209,26 @@ function claim(values) {
     throw new Error('Message and thread permalinks must belong to the permitted channel');
   }
   const messageTs = messagePermalink.timestamp;
+  let threadRoot = null;
+  if (event.threadRoot !== undefined) {
+    for (const property of ['permalink', 'senderId', 'text']) {
+      if (typeof event.threadRoot?.[property] !== 'string' || !event.threadRoot[property].trim()) {
+        throw new Error(`Candidate thread root is missing ${property}`);
+      }
+    }
+    const rootPermalink = slackPermalinkParts(event.threadRoot.permalink);
+    if (rootPermalink.channelId !== event.channelId || rootPermalink.timestamp !== threadPermalink.timestamp) {
+      throw new Error('Candidate thread root must match the exact Slack thread permalink');
+    }
+    threadRoot = {
+      permalink: event.threadRoot.permalink,
+      senderId: event.threadRoot.senderId,
+      text: event.threadRoot.text.trim(),
+    };
+  }
+  if (messageTs !== threadPermalink.timestamp && !threadRoot) {
+    throw new Error('Candidate thread reply must include its thread-root request');
+  }
   const state = loadState(statePath);
   const cursor = state.channels[event.channelId]?.cursor;
   if (!cursor) throw new Error(`Channel has not been bootstrapped: ${event.channelId}`);
@@ -223,6 +246,7 @@ function claim(values) {
     roleId: role.id,
     roleInstructionPath: role.instructionPath,
     text: event.text.trim(),
+    threadRoot,
     status: 'queued',
     deliveryState: 'pending',
     iteration: 1,
@@ -258,6 +282,69 @@ function start(values) {
   if (currentIteration) currentIteration.state = 'in_progress';
   writeJsonAtomically(statePath, state);
   return { action: 'started', missionId: id, iteration: mission.iteration };
+}
+
+function resume(values) {
+  const configPath = resolve(values.get('config') || defaultConfigPath);
+  const statePath = resolve(values.get('state') || defaultStatePath);
+  const config = loadConfig(configPath);
+  const role = selectedRole(config);
+  const state = loadState(statePath);
+  const id = required(values, 'mission');
+  const mission = state.missions[id];
+  if (!mission) throw new Error(`Unknown mission: ${id}`);
+  if (mission.status !== 'awaiting_owner_input') {
+    throw new Error(`Mission is not awaiting owner input: ${id}`);
+  }
+  const event = readJson(resolve(required(values, 'event')), 'resume event');
+  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.trim()) {
+    throw new Error('Resume event must contain message text and a verified explicit Reggie mention');
+  }
+  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
+    if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Resume event is missing ${property}`);
+  }
+  if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) {
+    throw new Error('Resume event must come from the original requester in the mission channel');
+  }
+  if (event.mentionedUserId !== config.slack.agentUserId || event.senderId === config.slack.agentUserId) {
+    throw new Error('Resume event must be an explicit mention from another sender');
+  }
+  const messagePermalink = slackPermalinkParts(event.permalink);
+  const threadPermalink = slackPermalinkParts(event.threadPermalink);
+  const missionThread = slackPermalinkParts(mission.threadPermalink);
+  if (messagePermalink.channelId !== mission.channelId || threadPermalink.channelId !== missionThread.channelId || threadPermalink.timestamp !== missionThread.timestamp) {
+    throw new Error('Resume event must be in the original mission thread');
+  }
+  if (timestampKey(messagePermalink.timestamp) <= timestampKey(mission.messageTs)) {
+    throw new Error('Resume event must be newer than the mission trigger');
+  }
+
+  const resumedAt = new Date().toISOString();
+  const nextIteration = (mission.iteration || 1) + 1;
+  mission.roleId = role.id;
+  mission.roleInstructionPath = role.instructionPath;
+  mission.status = 'queued';
+  mission.iteration = nextIteration;
+  mission.lastFeedbackTs = messagePermalink.timestamp;
+  mission.iterations = mission.iterations || [];
+  mission.iterations.push({ number: nextIteration, feedbackMessageTs: messagePermalink.timestamp, state: 'queued' });
+  mission.resumptions = mission.resumptions || [];
+  mission.resumptions.push({ messageTs: messagePermalink.timestamp, roleId: role.id, resumedAt });
+  writeFileSync(join(mission.directory, `iteration-${nextIteration}-feedback.md`), `# Owner input\n\n- Message permalink: ${event.permalink}\n- Resumed role: ${role.id}\n- Resumed: ${resumedAt}\n\n${event.text.trim()}\n`);
+
+  const contextPath = join(mission.directory, 'context.json');
+  const context = readJson(contextPath, 'mission context');
+  context.roleId = role.id;
+  context.roleInstructionPath = role.instructionPath;
+  context.resumedAt = resumedAt;
+  writeJsonAtomically(contextPath, context);
+
+  const cursor = state.channels[mission.channelId]?.cursor;
+  if (!cursor || timestampKey(messagePermalink.timestamp) > timestampKey(cursor)) {
+    state.channels[mission.channelId] = { cursor: messagePermalink.timestamp, bootstrappedAt: state.channels[mission.channelId]?.bootstrappedAt };
+  }
+  writeJsonAtomically(statePath, state);
+  return { action: 'resumed', missionId: id, iteration: nextIteration, roleId: role.id };
 }
 
 function recordUpdate(values) {
@@ -374,6 +461,7 @@ try {
   else if (command === 'claim') result = claim(values);
   else if (command === 'next') result = next(values);
   else if (command === 'start') result = start(values);
+  else if (command === 'resume') result = resume(values);
   else if (command === 'record-update') result = recordUpdate(values);
   else if (command === 'complete') result = complete(values);
   else if (command === 'evaluate') result = evaluate(values);
