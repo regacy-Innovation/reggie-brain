@@ -126,6 +126,21 @@ function loadRoles(): RegisteredRole[] {
   return value.roles;
 }
 
+function loadLocalProjectPaths(): Record<string, string> {
+  const localConfigPath = join(brainPath, 'config', 'projects.local.yml');
+  try {
+    const value = parse(readFileSync(localConfigPath, 'utf8')) as { projects?: Record<string, { local_path?: string }> };
+    if (!value.projects || typeof value.projects !== 'object' || Array.isArray(value.projects)) return {};
+    return Object.fromEntries(Object.entries(value.projects)
+      .filter(([, project]) => typeof project?.local_path === 'string' && project.local_path.trim())
+      .map(([id, project]) => [id, project.local_path!.trim()]));
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') return {};
+    throw error;
+  }
+}
+
 function selectedProject(projectId: string): RegisteredProject {
   const matches = loadProjects().filter(project => project.id === projectId);
   if (matches.length !== 1) throw new Error(`Project must match exactly one registered project: ${projectId}`);
@@ -139,6 +154,8 @@ function selectedRole(): RegisteredRole {
 }
 
 function localProjectPath(project: RegisteredProject): string {
+  const localPath = loadLocalProjectPaths()[project.id];
+  if (localPath) return resolve(localPath);
   return projectCloneRoot ? join(projectCloneRoot, project.id) : resolve(project.local_path);
 }
 

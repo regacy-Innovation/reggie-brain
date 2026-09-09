@@ -2,10 +2,10 @@
 
 ## Root layout
 
-Reggie keeps its operating files under one local workspace root. The recommended root is `C:\Reggie`.
+Reggie keeps its operating files under one local workspace root. `C:\Reggie` is a Windows example, not a required location. Configure the actual paths locally; for example, a Mac may use `/Users/<user>/Reggie`.
 
 ```text
-C:\Reggie\
+<REGGIE_HOME>\
   brain\                 # Clone of the Reggie brain repository
     daily-reports\        # Versioned daily report snapshots
     ideas\                # Versioned idea records and their status
@@ -17,9 +17,11 @@ C:\Reggie\
   scratch\               # Re-creatable temporary files; never authoritative
 ```
 
-The runner configuration declares the actual root paths. Do not assume that an
-existing developer checkout is Reggie's managed workspace unless it is present
-in `config/projects.yml`.
+The runner configuration declares the actual root paths. A registered project's
+per-computer clone location may be overridden in ignored
+`config/projects.local.yml`. Do not assume that an existing developer checkout
+is Reggie's managed workspace unless it is registered in `config/projects.yml`
+and its local clone origin has been verified.
 
 ## Brain and instructions
 

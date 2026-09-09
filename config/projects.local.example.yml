@@ -1,0 +1,5 @@
+# Ignored per-computer overrides for registered project clone locations.
+# A project must still be registered in config/projects.yml with its verified origin.
+projects:
+  regacy-platform-reggie-service:
+    local_path: /Users/example/Sites/regacy-platform-reggie-service
