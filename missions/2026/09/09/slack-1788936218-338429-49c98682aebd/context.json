@@ -1,0 +1,13 @@
+{
+  "missionId": "slack-1788936218-338429-49c98682aebd",
+  "ingress": "computer-use",
+  "brainSha": "449ae2577837a6bd5629e961299c3b2df058c921",
+  "roleId": "consultant",
+  "roleInstructionPath": "roles/consultant/AGENTS.md",
+  "workspaceId": "T034M9GSSA3",
+  "channelId": "C074BCJGQGP",
+  "channelName": "dev_system-development-team",
+  "messageTs": "1788936218.338429",
+  "threadPermalink": "https://regacy-innovation.slack.com/archives/C074BCJGQGP/p1788926317125469",
+  "createdAt": "2026-09-09T06:59:03.760Z"
+}
