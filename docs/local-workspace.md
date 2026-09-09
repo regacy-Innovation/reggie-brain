@@ -120,6 +120,11 @@ its mission ID, filename, local path, content type, creation time, and checksum.
 Keep reproducible outputs in their owning project or approved artifact store
 when that repository requires it.
 
+For a web-system bug fix, store the browser recordings as separate `before` and
+`after` video artifacts. Attach both videos to the pull request, then record
+their pull-request attachment references with the artifact metadata in the
+mission bundle.
+
 `scratch\` is only for re-creatable temporary work. Never place the sole copy
 of instructions, a mission record, a report, an idea, source code, or an
 artifact reference there.

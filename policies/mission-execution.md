@@ -9,3 +9,5 @@ The developer role may push or merge work only to the selected project's registe
 For a developer-role mission, if the request does not identify a registered project, record `awaiting_owner_input` with the missing target information. Do not guess a repository from the request text.
 
 For a developer-role mission, use the project's instructions for validation and release requirements. Report an actual outcome only after the required project-specific evidence has been recorded.
+
+For a web-system bug fix, capture the browser behavior before changing code and the corrected behavior after changing code. Use the same reproducible scenario for both recordings. Attach both videos to the pull request and record their artifact references with the pull-request reference before reporting success.
