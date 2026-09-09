@@ -5,7 +5,7 @@
 | Input | Authority | Required meaning |
 | --- | --- | --- |
 | Slack request | Newly delivered Slack message event stored by the runner | Original request, sender, channel, message timestamp, thread timestamp, original message language, and the matched configured member mention |
-| Slack trigger configuration | Local listener configuration | Permitted channel ID and the installed Reggie bot identity whose mention triggers a mission |
+| Slack trigger configuration | Local listener configuration | Installed Reggie bot identity and its Slack channel membership |
 | Brain revision | Reggie brain Git commit | Exact instructions used for this mission |
 | Role selection | `REGGIE_ROLE` validated against `config/roles.yml` | Role ID and Git-versioned role instruction path used for this mission |
 | Target project | `config/projects.yml` | Registered local path, origin URL, and upstream branch |
@@ -21,4 +21,4 @@ The runner must persist one mission record containing the mission ID; Slack mess
 
 ## Downstream requirements
 
-The completion Slack message replies in the triggering message's thread and uses the original message language. The daily summary is sent only to the permitted Slack channel. Both are generated from persisted mission records. A terminal agent response without a persisted terminal record does not count as a completed mission.
+The completion Slack message replies in the triggering message's thread and uses the original message language. A daily summary requires a separately configured reporting channel. Both are generated from persisted mission records. A terminal agent response without a persisted terminal record does not count as a completed mission.

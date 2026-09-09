@@ -41,7 +41,6 @@ dotenv.config({ path: join(defaultBrainPath, '.env') });
 dotenv.config({ path: join(defaultBrainPath, 'listener', '.env') });
 
 const brainPath = resolve(process.env.REGGIE_BRAIN_PATH || defaultBrainPath);
-const permittedChannelId = requiredEnvironment('PERMITTED_SLACK_CHANNEL_ID');
 const configuredRoleId = requiredEnvironment('REGGIE_ROLE');
 const codexBin = process.env.CODEX_BIN || 'codex';
 const stateRoot = resolve(process.env.REGGIE_STATE_ROOT || join(brainPath, 'runtime'));
@@ -447,7 +446,6 @@ async function drainQueue(): Promise<void> {
 
 app.event('app_mention', async ({ event }) => {
   if (!event.channel || !event.ts || !event.user || event.bot_id) return;
-  if (event.channel !== permittedChannelId) return;
   const auth = await app.client.auth.test();
   const botUserId = auth.user_id;
   if (!botUserId || !event.text.includes(`<@${botUserId}>`)) return;
@@ -483,7 +481,7 @@ app.event('app_mention', async ({ event }) => {
 
 async function start(): Promise<void> {
   await app.start();
-  console.log(`[reggie-local-listener] Socket Mode connected for ${permittedChannelId}`);
+  console.log('[reggie-local-listener] Socket Mode connected');
   await drainQueue();
 }
 
