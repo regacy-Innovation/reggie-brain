@@ -5,7 +5,7 @@
 | Input | Authority | Required meaning |
 | --- | --- | --- |
 | Slack request | Newly delivered Slack message event stored by the runner | Original request, sender, channel, message timestamp, thread timestamp, original message language, and the matched configured member mention |
-| Slack trigger configuration | Runner local configuration | Permitted channel ID and the Slack member ID whose mention triggers a mission |
+| Slack trigger configuration | Local listener configuration | Permitted channel ID and the installed Reggie bot identity whose mention triggers a mission |
 | Brain revision | Reggie brain Git commit | Exact instructions used for this mission |
 | Role selection | `REGGIE_ROLE` validated against `config/roles.yml` | Role ID and Git-versioned role instruction path used for this mission |
 | Target project | `config/projects.yml` | Registered local path, origin URL, and upstream branch |

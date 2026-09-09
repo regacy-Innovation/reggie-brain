@@ -1,6 +1,6 @@
 # Reggie brain
 
-Versioned shared and role-specific operating instructions for the always-on Reggie agent runner.
+Versioned shared and role-specific operating instructions, plus the local Slack listener that launches Reggie on this computer.
 
 The runner updates this repository before each mission, records the checked-out commit SHA in the mission record, then starts the selected role in the required mission context. `AGENTS.md` is the entrypoint for the agent.
 
@@ -9,6 +9,7 @@ The runner updates this repository before each mission, records the checked-out 
 - `AGENTS.md` defines shared agent behavior.
 - `config/roles.yml` is the authoritative role registry.
 - `roles/` contains the selected role's specialized instructions.
+- `listener/` is the local Socket Mode listener and Codex launcher. It is separate from the online Slack listener.
 - `contracts/mission-lifecycle.md` defines the data that must be retained between Slack, the runner, the coding agent, GitHub, and reporting.
 - `policies/` contains the Slack reporting and mission execution rules.
 - `config/projects.yml` is the verified allowlist of local project clones.

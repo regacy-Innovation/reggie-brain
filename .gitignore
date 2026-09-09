@@ -3,6 +3,9 @@ config/runtime.local.yml
 runtime/
 jobs/
 worktrees/
+listener/node_modules/
+listener/dist/
+listener/.env
 
 # Secrets
 .env

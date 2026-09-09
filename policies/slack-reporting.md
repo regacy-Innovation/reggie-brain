@@ -4,7 +4,7 @@ All outbound Slack messages must be posted only to `C074BCJGQGP` (`#dev_system-d
 
 ## Reactive mission trigger
 
-Process only newly delivered Slack message events in `C074BCJGQGP` that contain the configured `reactive_slack_mention_user_id` as a member mention. Do not poll, crawl, search, or replay the channel to find requests. Record the matched mention and message identity before starting the mission.
+Process only newly delivered Slack `app_mention` events in `C074BCJGQGP` that contain the installed Reggie bot mention. Do not poll, crawl, search, or replay the channel to find requests. Record the matched mention and message identity before starting the mission.
 
 ## Completion message
 

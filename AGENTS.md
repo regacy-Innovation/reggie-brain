@@ -24,7 +24,7 @@ For a simple repository-inspection or documentation task that is not a runner mi
 
 ## Repository map
 
-This repository contains operating policy, configuration, and lightweight versioned evidence; it does not contain the ReGACY Platform application source or the runner implementation.
+This repository contains operating policy, configuration, lightweight versioned evidence, and the local Slack listener. It does not contain the ReGACY Platform application source.
 
 - `AGENTS.md`: authoritative entrypoint for agent behavior.
 - `README.md`: repository purpose and runner bootstrap overview.
@@ -32,6 +32,7 @@ This repository contains operating policy, configuration, and lightweight versio
 - `config/roles.yml`: permitted role IDs and their instruction paths.
 - `config/runtime.example.yml`: non-secret example only; real runtime values and secrets remain local and untracked.
 - `roles/`: role-specific instructions selected by `REGGIE_ROLE`.
+- `listener/`: local Socket Mode listener that dispatches permitted Slack bot mentions to local Codex.
 - `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and reporting.
 - `policies/`: mission execution and Slack reporting boundaries.
 - `docs/`: Platform architecture, development conventions, and managed workspace layout.
@@ -66,10 +67,10 @@ Read `roles/README.md` and the selected role profile after this file. Role instr
 
 ## Slack ingress boundary
 
-The runner reacts only to newly delivered Slack message events. It must start a mission only when all of the following are true:
+The local listener reacts only to newly delivered Slack `app_mention` events. It must start a mission only when all of the following are true:
 
 - `event.channel` equals the configured `permitted_slack_channel_id`
-- `event.text` contains the configured `reactive_slack_mention_user_id` as a Slack member mention
+- `event.text` contains the installed Reggie Slack app's bot mention
 - the event contains a message timestamp and a sender identity
 
 Do not poll, crawl, search, or replay channel history to discover requests. Ignore every event that does not meet the trigger contract. Preserve the original message language and instruct Reggie to reply in that language.
