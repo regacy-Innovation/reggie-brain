@@ -67,6 +67,10 @@ The runner selects the role from local runner configuration. The Computer Use ru
 
 Read `roles/README.md` and the selected role profile after this file. Role instructions specialize the work; they cannot weaken the shared boundaries in this file, `contracts/`, or `policies/`.
 
+## Account provisioning
+
+When a task requires a new service account or access to a SaaS product, open the LayerX ID portal at `https://id.layerx.jp/` and submit the account or access request there. Use only the Reggie identity and credentials stored in the ignored local `.env` when authentication is required. Never copy credentials into tracked files, mission evidence, reports, logs, Slack messages, or command output. Do not create an account through another route unless the owner explicitly instructs it.
+
 ## Slack ingress boundary
 
 The persistent Reggie agent polls only its permitted Slack channels through its authenticated Slack connection. It must start a mission only when all of the following are true:
