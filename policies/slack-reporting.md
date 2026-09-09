@@ -6,9 +6,9 @@ For a mission, post the outbound Slack message only to its triggering channel an
 
 Continuously poll only the locally configured permitted channels through Reggie's authenticated Slack connection. Process a message only once, after its timestamp is newer than the persisted polling cursor and its text contains the configured member mention for `@Reggie Agent`. Do not search or replay older channel history. Record the matched mention and message identity before starting the mission.
 
-## Computer Use fallback
+## Temporary Computer Use ingress
 
-Use Computer Use only for manual recovery when the authenticated Slack connection is unavailable. Limit the inspection to explicitly permitted channels in an already authenticated Slack user interface. Do not use it for unattended or minute-by-minute polling, and do not use it instead of the authenticated connection or persisted polling cursor.
+Until a programmatic authenticated Slack connection is configured, an owner-approved scheduled heartbeat may use Computer Use to inspect explicitly configured permitted channels in the already authenticated `Reggie Agent` Slack user interface. It must submit each candidate to the local runner, which verifies the channel allowlist, explicit visible `@Reggie Agent` mention, immutable Slack permalink timestamp, and persisted per-channel cursor before creating a mission. Do not inspect unconfigured channels, replay history, process a message twice, or use Computer Use to bypass the cursor. Replace this temporary ingress path with the authenticated Slack connection when it becomes available.
 
 ## Completion message
 

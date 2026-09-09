@@ -1,5 +1,6 @@
 # Runner-specific configuration and execution state
 config/runtime.local.yml
+config/runtime.local.json
 config/projects.local.yml
 runtime/
 jobs/

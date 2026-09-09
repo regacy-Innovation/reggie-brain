@@ -1,0 +1,13 @@
+{
+  "slack": {
+    "mode": "computer-use",
+    "workspaceId": "T00000000",
+    "agentDisplayName": "Reggie Agent",
+    "permittedChannels": [
+      {
+        "id": "C00000000",
+        "name": "sys_reggie"
+      }
+    ]
+  }
+}

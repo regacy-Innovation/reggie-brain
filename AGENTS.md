@@ -24,7 +24,7 @@ For a simple repository-inspection or documentation task that is not a runner mi
 
 ## Repository map
 
-This repository contains operating policy, configuration, and lightweight versioned evidence. It does not contain the ReGACY Platform application source or an implementation of the agent runner.
+This repository contains operating policy, configuration, lightweight versioned evidence, and the local cursor-backed mission gate for temporary Computer Use Slack ingress. It does not contain the ReGACY Platform application source.
 
 - `AGENTS.md`: authoritative entrypoint for agent behavior.
 - `README.md`: repository purpose and runner bootstrap overview.
@@ -32,6 +32,7 @@ This repository contains operating policy, configuration, and lightweight versio
 - `config/roles.yml`: permitted role IDs and their instruction paths.
 - `config/runtime.example.yml`: non-secret example only; real runtime values and secrets remain local and untracked.
 - `roles/`: role-specific instructions selected by `REGGIE_ROLE`.
+- `runner/`: local cursor-backed mission gate used by the temporary Computer Use Slack ingress.
 - `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and reporting.
 - `policies/`: mission execution and Slack reporting boundaries.
 - `docs/`: Platform architecture, development conventions, and managed workspace layout.
@@ -74,7 +75,7 @@ The persistent Reggie agent polls only its permitted Slack channels through its 
 
 Do not process a message twice or replay older channel history. Ignore every message that does not meet the trigger contract. Preserve the original message language and reply in that language.
 
-Computer Use is a manual recovery fallback only when the authenticated Slack connection is unavailable. It may inspect only explicitly permitted channels in an already authenticated Slack user interface. Do not use Computer Use for unattended or minute-by-minute polling, and do not treat it as a substitute for the authenticated connection or its persisted polling cursor.
+Until a programmatic authenticated Slack connection is configured, an owner-approved scheduled heartbeat may use Computer Use as temporary ingress. It may inspect only channels explicitly configured in the local runner configuration, through the already authenticated `Reggie Agent` Slack user interface. The runner must persist a per-channel cursor, accept only newer messages with an explicit visible `@Reggie Agent` mention, and create one mission record before work starts. Do not use Computer Use to inspect unconfigured channels, replay history, or bypass the cursor. Replace this temporary ingress path with the authenticated Slack connection when it becomes available.
 
 ## Mission startup
 
