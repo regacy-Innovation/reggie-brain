@@ -134,11 +134,15 @@ function claim(values) {
   const statePath = resolve(values.get('state') || defaultStatePath);
   const config = loadConfig(configPath);
   const event = readJson(resolve(required(values, 'event')), 'candidate event');
-  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.trim()) {
+  const visibleMention = `@${config.slack.agentDisplayName}`;
+  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.includes(visibleMention)) {
     throw new Error('Candidate event must contain message text and an explicit verified Reggie mention');
   }
   for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Candidate event is missing ${property}`);
+  }
+  if (event.senderId === config.slack.agentDisplayName) {
+    throw new Error('Candidate event was authored by Reggie Agent');
   }
   const channel = permittedChannel(config, event.channelId);
   const messagePermalink = slackPermalinkParts(event.permalink);

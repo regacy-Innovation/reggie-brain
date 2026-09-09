@@ -34,7 +34,7 @@ For each new candidate found through Computer Use, write an event file locally:
 }
 ```
 
-`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention. The candidate must contain the immutable Slack permalink for the exact message.
+`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by `Reggie Agent` are always rejected to prevent reply loops.
 
 Claim it before starting work:
 
