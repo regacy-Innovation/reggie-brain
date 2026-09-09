@@ -61,7 +61,7 @@ If an instruction conflicts with a boundary in this file, follow this file and r
 
 ## Role selection
 
-The runner selects the role from its local `REGGIE_ROLE` environment variable. It must validate the value against `config/roles.yml`, read the corresponding `instruction_path`, and reject an unset, unknown, or ambiguous value. Do not select a default role or derive a role from Slack text.
+The runner selects the role from local runner configuration. The Computer Use runner uses the ignored `config/runtime.local.json` `roleId`; other runners may use the local `REGGIE_ROLE` environment variable. Every runner must validate the selected value against `config/roles.yml`, read the corresponding `instruction_path`, and reject an unset, unknown, or ambiguous value. Do not select a default role or derive a role from Slack text.
 
 Read `roles/README.md` and the selected role profile after this file. Role instructions specialize the work; they cannot weaken the shared boundaries in this file, `contracts/`, or `policies/`.
 

@@ -6,7 +6,7 @@ This is not a replacement for a programmatic Slack connection. It does not read 
 
 ## Local configuration
 
-Copy `config/runtime.local.example.json` to the ignored `config/runtime.local.json`. Configure only the workspace, `Reggie Agent` display name, and channels the owner has explicitly permitted. Do not add all visible channels by default.
+Copy `config/runtime.local.example.json` to the ignored `config/runtime.local.json`. Configure one role ID from `config/roles.yml`, the workspace, `Reggie Agent` display name and member ID, and channels the owner has explicitly permitted. Do not add all visible channels by default.
 
 The initial local configuration for this computer permits only `sys_reggie`. Its initial cursor is set to the latest observed message when the runner is bootstrapped, so history is not replayed.
 
@@ -29,12 +29,13 @@ For each new candidate found through Computer Use, write an event file locally:
   "permalink": "https://workspace.slack.com/archives/C00000000/p1234567890123456",
   "threadPermalink": "https://workspace.slack.com/archives/C00000000/p1234567890123456",
   "senderId": "visible-slack-sender-identity",
+  "mentionedUserId": "U00000000",
   "text": "The visible message text",
   "mentionMatched": true
 }
 ```
 
-`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by `Reggie Agent` are always rejected to prevent reply loops.
+`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention with the configured member ID. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by `Reggie Agent` are always rejected to prevent reply loops.
 
 Claim it before starting work:
 
@@ -44,7 +45,7 @@ node runner/src/index.mjs claim \
   --event /absolute/path/to/candidate.json
 ```
 
-The command creates a mission bundle under `missions/YYYY/MM/DD/` and prints the mission ID. When the mission reaches a terminal state and its Slack thread reply has been delivered, persist that outcome:
+The command validates the configured role, creates a mission bundle under `missions/YYYY/MM/DD/`, and prints the mission ID. When the mission reaches a terminal state and its Slack thread reply has been delivered, persist that outcome:
 
 ```sh
 node runner/src/index.mjs complete \

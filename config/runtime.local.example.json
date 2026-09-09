@@ -1,8 +1,10 @@
 {
+  "roleId": "consultant",
   "slack": {
     "mode": "computer-use",
     "workspaceId": "T00000000",
     "agentDisplayName": "Reggie Agent",
+    "agentUserId": "U00000000",
     "permittedChannels": [
       {
         "id": "C00000000",

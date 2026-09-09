@@ -1,6 +1,6 @@
 # Reggie roles
 
-`REGGIE_ROLE` is a local runner environment variable. Its value must match exactly one `id` in `config/roles.yml`. The runner must reject an unset, unknown, or ambiguous value; it must not choose a default role.
+`REGGIE_ROLE` is a local runner environment variable. The temporary Computer Use runner instead reads `roleId` from ignored `config/runtime.local.json`. Either value must match exactly one `id` in `config/roles.yml`. The runner must reject an unset, unknown, or ambiguous value; it must not choose a default role.
 
 For every mission, the runner reads the shared root `AGENTS.md`, all applicable shared contracts and policies, and the selected role's `AGENTS.md`. It records the role ID and instruction path with the Reggie brain commit SHA.
 

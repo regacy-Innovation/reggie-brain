@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
@@ -56,10 +57,33 @@ function loadState(statePath) {
 function loadConfig(configPath) {
   const config = readJson(configPath, 'local runtime configuration');
   const channels = config?.slack?.permittedChannels;
-  if (config?.slack?.mode !== 'computer-use' || !Array.isArray(channels) || channels.length === 0) {
-    throw new Error('Local runtime configuration must define computer-use Slack channels');
+  if (config?.slack?.mode !== 'computer-use' || typeof config.slack.agentUserId !== 'string' || !config.slack.agentUserId || !Array.isArray(channels) || channels.length === 0) {
+    throw new Error('Local runtime configuration must define a Reggie member ID and computer-use Slack channels');
   }
   return config;
+}
+
+function selectedRole(config) {
+  if (typeof config?.roleId !== 'string' || !config.roleId.trim()) {
+    throw new Error('Local runtime configuration must define roleId');
+  }
+  const lines = readFileSync(join(brainPath, 'config', 'roles.yml'), 'utf8').split('\n');
+  const roles = [];
+  let currentRole = null;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('- id:')) {
+      currentRole = { id: trimmed.slice('- id:'.length).trim() };
+      roles.push(currentRole);
+    } else if (currentRole && trimmed.startsWith('instruction_path:')) {
+      currentRole.instructionPath = trimmed.slice('instruction_path:'.length).trim();
+    }
+  }
+  const matches = roles.filter(role => role.id === config.roleId && typeof role.instructionPath === 'string');
+  if (matches.length !== 1) {
+    throw new Error(`roleId must match exactly one registered role: ${config.roleId}`);
+  }
+  return matches[0];
 }
 
 function slackPermalinkParts(permalink) {
@@ -94,6 +118,10 @@ function dateParts() {
   return [values.year, values.month, values.day];
 }
 
+function currentBrainSha() {
+  return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: brainPath, encoding: 'utf8' }).trim();
+}
+
 function writeMissionBundle(mission, config) {
   const [year, month, day] = dateParts();
   const directory = join(brainPath, 'missions', year, month, day, mission.id);
@@ -102,6 +130,9 @@ function writeMissionBundle(mission, config) {
   writeJsonAtomically(join(directory, 'context.json'), {
     missionId: mission.id,
     ingress: 'computer-use',
+    brainSha: currentBrainSha(),
+    roleId: mission.roleId,
+    roleInstructionPath: mission.roleInstructionPath,
     workspaceId: config.slack.workspaceId,
     channelId: mission.channelId,
     channelName: mission.channelName,
@@ -133,13 +164,17 @@ function claim(values) {
   const configPath = resolve(values.get('config') || defaultConfigPath);
   const statePath = resolve(values.get('state') || defaultStatePath);
   const config = loadConfig(configPath);
+  const role = selectedRole(config);
   const event = readJson(resolve(required(values, 'event')), 'candidate event');
   const visibleMention = `@${config.slack.agentDisplayName}`;
   if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.includes(visibleMention)) {
     throw new Error('Candidate event must contain message text and an explicit verified Reggie mention');
   }
-  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId']) {
+  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Candidate event is missing ${property}`);
+  }
+  if (event.mentionedUserId !== config.slack.agentUserId) {
+    throw new Error('Candidate event mentions a different Slack member');
   }
   if (event.senderId === config.slack.agentDisplayName) {
     throw new Error('Candidate event was authored by Reggie Agent');
@@ -165,6 +200,8 @@ function claim(values) {
     permalink: event.permalink,
     threadPermalink: event.threadPermalink,
     senderId: event.senderId,
+    roleId: role.id,
+    roleInstructionPath: role.instructionPath,
     text: event.text.trim(),
     status: 'queued',
     deliveryState: 'pending',
