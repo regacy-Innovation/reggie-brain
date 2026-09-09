@@ -12,11 +12,13 @@ Until a programmatic authenticated Slack connection is configured, an owner-appr
 
 ## Completion message
 
-After a mission reaches `succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`, the runner sends one reply in the triggering Slack thread, using the triggering message's language.
+After each execution, Reggie sends one result reply in the triggering Slack thread, using the triggering message's language. It asks the requester to reply in that thread with an explicit `@Reggie Agent` mention and state whether the result is satisfactory.
 
 The message includes the mission ID, request summary, terminal status, result or blocker, Reggie brain commit SHA, target repository, branch, changed-file list, and Git commit, pull request, or deployment reference when present. It also states the next action required from the owner when the status requires one.
 
 Do not send a completion message for intermediate progress.
+
+Accept evaluation only when it is newer than the previous mission message, comes from the original requester, belongs to the original mission thread, and explicitly mentions `@Reggie Agent`. Route it to that awaiting-evaluation mission instead of creating a new mission. When the requester clearly approves, record the mission as `succeeded`. When the requester asks for changes or says they are not satisfied, record the feedback, queue the next iteration of that same mission, and use the feedback in that iteration. Do not infer approval from an unclear response. Continue this loop until approval, cancellation, failure, or `awaiting_owner_input`.
 
 ## Daily summary
 

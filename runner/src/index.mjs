@@ -8,7 +8,7 @@ const defaultConfigPath = join(brainPath, 'config', 'runtime.local.json');
 const defaultStatePath = join(brainPath, 'runtime', 'poll-state.json');
 
 function usage() {
-  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state>');
+  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
 }
 
 function parseArguments(argumentsList) {
@@ -87,14 +87,34 @@ function selectedRole(config) {
 }
 
 function slackPermalinkParts(permalink) {
-  const match = /\/archives\/([^/]+)\/p(\d{16})(?:$|[?#/])/.exec(permalink);
-  if (!match) throw new Error('Slack permalink must contain a 16-digit message timestamp');
-  return { channelId: match[1], timestamp: `${match[2].slice(0, 10)}.${match[2].slice(10)}` };
+  let url;
+  try {
+    url = new URL(permalink);
+  } catch {
+    throw new Error('Slack permalink must be a valid URL');
+  }
+  const segments = url.pathname.split('/').filter(Boolean);
+  const archivesIndex = segments.indexOf('archives');
+  const channelId = segments[archivesIndex + 1];
+  const messagePart = segments[archivesIndex + 2];
+  const digits = messagePart?.startsWith('p') ? messagePart.slice(1) : '';
+  if (archivesIndex === -1 || !channelId || digits.length !== 16 || !isDigits(digits)) {
+    throw new Error('Slack permalink must contain a 16-digit message timestamp');
+  }
+  return { channelId, timestamp: `${digits.slice(0, 10)}.${digits.slice(10)}` };
+}
+
+function isDigits(value) {
+  if (!value) return false;
+  for (const character of value) {
+    if (character < '0' || character > '9') return false;
+  }
+  return true;
 }
 
 function timestampKey(timestamp) {
   const [seconds, fraction = ''] = timestamp.split('.');
-  if (!/^\d+$/.test(seconds) || !/^\d*$/.test(fraction)) throw new Error(`Invalid Slack timestamp: ${timestamp}`);
+  if (!isDigits(seconds) || (fraction && !isDigits(fraction))) throw new Error(`Invalid Slack timestamp: ${timestamp}`);
   return `${seconds.padStart(16, '0')}.${fraction.padEnd(6, '0').slice(0, 6)}`;
 }
 
@@ -205,6 +225,8 @@ function claim(values) {
     text: event.text.trim(),
     status: 'queued',
     deliveryState: 'pending',
+    iteration: 1,
+    iterations: [{ number: 1, requestMessageTs: messageTs, state: 'queued' }],
     createdAt: new Date().toISOString(),
   };
   const directory = writeMissionBundle(mission, config);
@@ -214,14 +236,39 @@ function claim(values) {
   return { action: 'claimed', missionId: id, directory };
 }
 
+function next(values) {
+  const statePath = resolve(values.get('state') || defaultStatePath);
+  const state = loadState(statePath);
+  const queued = Object.values(state.missions)
+    .filter(mission => mission.status === 'queued')
+    .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+  return { action: 'next', missions: queued };
+}
+
+function start(values) {
+  const statePath = resolve(values.get('state') || defaultStatePath);
+  const state = loadState(statePath);
+  const id = required(values, 'mission');
+  const mission = state.missions[id];
+  if (!mission) throw new Error(`Unknown mission: ${id}`);
+  if (mission.status !== 'queued') throw new Error(`Mission is not queued: ${id}`);
+  mission.status = 'in_progress';
+  mission.startedAt = new Date().toISOString();
+  const currentIteration = mission.iterations?.find(iteration => iteration.number === mission.iteration);
+  if (currentIteration) currentIteration.state = 'in_progress';
+  writeJsonAtomically(statePath, state);
+  return { action: 'started', missionId: id, iteration: mission.iteration };
+}
+
 function complete(values) {
   const statePath = resolve(values.get('state') || defaultStatePath);
   const state = loadState(statePath);
   const id = required(values, 'mission');
   const mission = state.missions[id];
   if (!mission) throw new Error(`Unknown mission: ${id}`);
+  if (mission.status !== 'in_progress') throw new Error(`Mission is not in progress: ${id}`);
   const status = required(values, 'status');
-  if (!['succeeded', 'failed', 'cancelled', 'awaiting_owner_input'].includes(status)) {
+  if (!['awaiting_evaluation', 'failed', 'cancelled', 'awaiting_owner_input'].includes(status)) {
     throw new Error(`Unsupported terminal status: ${status}`);
   }
   const deliveryState = required(values, 'delivery-state');
@@ -229,9 +276,72 @@ function complete(values) {
   mission.status = status;
   mission.deliveryState = deliveryState;
   mission.completedAt = new Date().toISOString();
-  writeFileSync(join(mission.directory, 'result.md'), `# Terminal result\n\n- Status: ${status}\n- Slack delivery: ${deliveryState}\n- Completed: ${mission.completedAt}\n\n${summary}\n`);
+  const currentIteration = mission.iterations?.find(iteration => iteration.number === mission.iteration);
+  if (currentIteration) currentIteration.state = status;
+  if (status === 'awaiting_evaluation') mission.evaluationRequestedAt = mission.completedAt;
+  writeFileSync(join(mission.directory, 'result.md'), `# Execution result\n\n- Status: ${status}\n- Slack delivery: ${deliveryState}\n- Completed: ${mission.completedAt}\n\n${summary}\n`);
   writeJsonAtomically(statePath, state);
   return { action: 'completed', missionId: id, status, deliveryState };
+}
+
+function evaluate(values) {
+  const configPath = resolve(values.get('config') || defaultConfigPath);
+  const statePath = resolve(values.get('state') || defaultStatePath);
+  const config = loadConfig(configPath);
+  const state = loadState(statePath);
+  const id = required(values, 'mission');
+  const mission = state.missions[id];
+  if (!mission) throw new Error(`Unknown mission: ${id}`);
+  if (mission.status !== 'awaiting_evaluation') throw new Error(`Mission is not awaiting evaluation: ${id}`);
+  const outcome = required(values, 'outcome');
+  if (!['approved', 'revision_requested'].includes(outcome)) throw new Error(`Unsupported evaluation outcome: ${outcome}`);
+  const event = readJson(resolve(required(values, 'event')), 'evaluation event');
+  const visibleMention = `@${config.slack.agentDisplayName}`;
+  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.includes(visibleMention)) {
+    throw new Error('Evaluation event must contain message text and an explicit verified Reggie mention');
+  }
+  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
+    if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Evaluation event is missing ${property}`);
+  }
+  if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) throw new Error('Evaluation must come from the original requester in the mission channel');
+  if (event.mentionedUserId !== config.slack.agentUserId) throw new Error('Evaluation mentions a different Slack member');
+  const messagePermalink = slackPermalinkParts(event.permalink);
+  const threadPermalink = slackPermalinkParts(event.threadPermalink);
+  const missionThread = slackPermalinkParts(mission.threadPermalink);
+  if (messagePermalink.channelId !== mission.channelId || threadPermalink.channelId !== missionThread.channelId || threadPermalink.timestamp !== missionThread.timestamp) {
+    throw new Error('Evaluation must be in the original mission thread');
+  }
+  const previousMessageTs = mission.lastFeedbackTs || mission.messageTs;
+  if (timestampKey(messagePermalink.timestamp) <= timestampKey(previousMessageTs)) {
+    throw new Error('Evaluation must be newer than the previous mission message');
+  }
+  const evaluatedAt = new Date().toISOString();
+  mission.lastFeedbackTs = messagePermalink.timestamp;
+  const currentIteration = mission.iteration || 1;
+  const evaluation = { iteration: currentIteration, outcome, messageTs: messagePermalink.timestamp, senderId: event.senderId, evaluatedAt };
+  mission.evaluation = evaluation;
+  mission.evaluations = mission.evaluations || [];
+  mission.evaluations.push(evaluation);
+  writeFileSync(join(mission.directory, `iteration-${currentIteration}-evaluation.md`), `# User evaluation\n\n- Iteration: ${currentIteration}\n- Outcome: ${outcome}\n- Message permalink: ${event.permalink}\n- Evaluated: ${evaluatedAt}\n\n${event.text.trim()}\n`);
+  const activeIteration = mission.iterations?.find(iteration => iteration.number === currentIteration);
+  if (activeIteration) activeIteration.state = outcome;
+  if (outcome === 'approved') {
+    mission.status = 'succeeded';
+    mission.completedAt = evaluatedAt;
+  } else {
+    const nextIteration = (mission.iteration || 1) + 1;
+    mission.iteration = nextIteration;
+    mission.status = 'queued';
+    mission.iterations = mission.iterations || [];
+    mission.iterations.push({ number: nextIteration, feedbackMessageTs: messagePermalink.timestamp, state: 'queued' });
+    writeFileSync(join(mission.directory, `iteration-${nextIteration}-feedback.md`), `# Revision feedback\n\n${event.text.trim()}\n`);
+  }
+  const cursor = state.channels[mission.channelId]?.cursor;
+  if (!cursor || timestampKey(messagePermalink.timestamp) > timestampKey(cursor)) {
+    state.channels[mission.channelId] = { cursor: messagePermalink.timestamp, bootstrappedAt: state.channels[mission.channelId]?.bootstrappedAt };
+  }
+  writeJsonAtomically(statePath, state);
+  return { action: outcome === 'approved' ? 'approved' : 'revision_queued', missionId: id, iteration: mission.iteration };
 }
 
 try {
@@ -240,7 +350,10 @@ try {
   let result;
   if (command === 'bootstrap') result = bootstrap(values);
   else if (command === 'claim') result = claim(values);
+  else if (command === 'next') result = next(values);
+  else if (command === 'start') result = start(values);
   else if (command === 'complete') result = complete(values);
+  else if (command === 'evaluate') result = evaluate(values);
   else usage();
   process.stdout.write(`${JSON.stringify(result)}\n`);
 } catch (error) {

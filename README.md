@@ -19,7 +19,7 @@ Until a programmatic Slack connection is available, `runner/` provides the local
 
 ## Runner bootstrap contract
 
-For every new mission, the persistent agent must fetch and fast-forward this repository; read the current `AGENTS.md`, applicable shared policy files, and the `REGGIE_ROLE` profile selected from `config/roles.yml`; record this repository's commit SHA and selected role; then follow that role's project and delivery requirements. It polls its permitted Slack channels for new qualifying mentions through the authenticated Slack connection or the owner-approved temporary Computer Use ingress, and replies only in the triggering Slack thread from a persisted terminal mission record.
+For every new mission, the persistent agent must fetch and fast-forward this repository; read the current `AGENTS.md`, applicable shared policy files, and the `REGGIE_ROLE` profile selected from `config/roles.yml`; record this repository's commit SHA and selected role; then follow that role's project and delivery requirements. It polls its permitted Slack channels for new qualifying mentions through the authenticated Slack connection or the owner-approved temporary Computer Use ingress, replies in the triggering Slack thread, asks the requester for evaluation, and runs queued revision iterations until the requester approves.
 
 This repository contains no Slack token, GitHub token, API key, or other credentials. The non-secret Slack routing identifiers in `config/runtime.example.yml` are configuration examples; real runtime values and all credentials stay outside Git.
 

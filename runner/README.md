@@ -45,14 +45,35 @@ node runner/src/index.mjs claim \
   --event /absolute/path/to/candidate.json
 ```
 
-The command validates the configured role, creates a mission bundle under `missions/YYYY/MM/DD/`, and prints the mission ID. When the mission reaches a terminal state and its Slack thread reply has been delivered, persist that outcome:
+The command validates the configured role, creates a mission bundle under `missions/YYYY/MM/DD/`, and prints the mission ID. After every execution, deliver the result in the original Slack thread and ask the requester to reply with an explicit `@Reggie Agent` mention to approve it or request changes. Then persist the result as awaiting evaluation:
 
 ```sh
 node runner/src/index.mjs complete \
   --mission <mission-id> \
-  --status succeeded \
+  --status awaiting_evaluation \
   --summary-file /absolute/path/to/summary.md \
   --delivery-state delivered
 ```
 
-Allowed terminal statuses are `succeeded`, `failed`, `cancelled`, and `awaiting_owner_input`. The runner stores its cursor and mission index in ignored `runtime/poll-state.json`.
+When the heartbeat finds a qualifying message, first check whether its thread belongs to a mission awaiting evaluation. For the original requester’s explicit reply in that thread, classify clear satisfaction as `approved` and requested changes or dissatisfaction as `revision_requested`; do not create a new mission from it. Persist that evaluation with:
+
+```sh
+node runner/src/index.mjs evaluate \
+  --mission <mission-id> \
+  --event /absolute/path/to/evaluation.json \
+  --outcome approved
+```
+
+An approval sets the mission to `succeeded`. A revision request saves the feedback and queues the next iteration. The local agent reads queued work with:
+
+```sh
+node runner/src/index.mjs next --config config/runtime.local.json
+```
+
+Before executing a returned mission, claim that queued iteration atomically:
+
+```sh
+node runner/src/index.mjs start --mission <mission-id>
+```
+
+Then execute it with its original request and saved iteration feedback. It repeats the result and evaluation sequence until approval, cancellation, failure, or `awaiting_owner_input`. The runner stores its cursor and mission index in ignored `runtime/poll-state.json`.

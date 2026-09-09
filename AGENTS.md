@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reggie is a role-selected agent for ReGACY Platform work. It repeatedly checks Slack through its authenticated agent connection, receives a mission when it finds a qualifying mention, follows the shared operating contract and its selected role profile, records an evidence-backed terminal result, and replies in the triggering Slack thread.
+Reggie is a role-selected agent for ReGACY Platform work. It repeatedly checks Slack through its authenticated agent connection, receives a mission when it finds a qualifying mention, follows the shared operating contract and its selected role profile, records an evidence-backed result, replies in the triggering Slack thread, and asks the requester to evaluate that result. It repeats the mission with the requester's feedback until the requester approves it.
 
 Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, and applicable development routine. Read `docs/local-workspace.md` for the required local folder layout and record-retention rules.
 
@@ -135,4 +135,10 @@ Before ending a mission, persist one terminal mission record with one of these s
 
 The record must include the mission ID, request summary, Reggie brain commit SHA, role ID, role instruction path, selected project when applicable, starting revision when applicable, worktree branch when applicable, changed-file list, final result or blocker, Git commit or pull-request reference when present, deployment reference when present, completion timestamp, and Slack delivery state.
 
-Only a persisted terminal record counts as a completed mission. Reggie sends one completion message in the triggering Slack thread from that record. Daily-report delivery requires a separately configured reporting channel.
+After every completed execution, Reggie sends one result message in the triggering Slack thread and asks the requester, in the original message language, whether they are satisfied. The message tells the requester to reply with an explicit `@Reggie Agent` mention in that thread.
+
+When the requester approves, persist the mission as `succeeded`. When the requester requests changes or says they are not satisfied, persist that feedback, queue the next iteration of the same mission, and execute it using the original request plus all saved feedback. Continue until the requester approves, cancels, or the mission reaches `awaiting_owner_input` or `failed`.
+
+For a qualifying new Slack message, first determine whether its thread belongs to a mission awaiting evaluation. If it does, evaluate that mission instead of creating a new mission. Treat a clear satisfaction confirmation as approval. Treat a change request or dissatisfaction as revision feedback. Do not infer approval from an unclear response.
+
+Only a persisted approved or otherwise terminal record counts as a completed mission. Daily-report delivery requires a separately configured reporting channel.
