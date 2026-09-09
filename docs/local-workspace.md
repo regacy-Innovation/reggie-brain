@@ -103,8 +103,9 @@ Every daily, weekly, and monthly report must include these sections:
 1. `What worked well`: completed actions and positive requester evaluation, with mission IDs.
 2. `What did not work`: failures, blockers, rework, missing evidence, or negative requester evaluation, with mission IDs.
 3. `Improvements to better serve the user`: specific proposed changes grounded in the preceding sections.
+4. `Progress and recurring issues`: the status of prior improvements and evidence that an issue has improved, remained unchanged, or recurred.
 
-The reports may describe only actions and outcomes recorded in the completed period. If no mission activity occurred, state that fact and do not invent strengths, failures, or improvements.
+Before writing the report, read prior daily, weekly, and monthly reports for unresolved improvements and recurring issues. The reports may describe only actions and outcomes recorded in the completed period or evidence cited by prior reports. If no mission activity occurred, state that fact and do not invent strengths, failures, improvements, or progress.
 
 Post a concise link and summary of each completed report to the configured
 reporting channel. The daily report uses `#dev_system-development-team`
