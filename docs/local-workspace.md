@@ -8,6 +8,8 @@ Reggie keeps its operating files under one local workspace root. `C:\Reggie` is 
 <REGGIE_HOME>\
   brain\                 # Clone of the Reggie brain repository
     daily-reports\        # Versioned daily report snapshots
+    weekly-reports\       # Versioned weekly retrospective snapshots
+    monthly-reports\      # Versioned monthly retrospective snapshots
     ideas\                # Versioned idea records and their status
     missions\             # Versioned lightweight mission records
   projects\              # Clean registered base clones; never edit directly
@@ -69,7 +71,7 @@ Commit and push the terminal mission bundle to the Reggie brain repository. Do
 not store credentials, API tokens, complete database exports, unrelated customer
 data, duplicate project source files, raw logs, or binary artifacts in it.
 
-## Daily reports
+## Retrospective reports
 
 At the daily-summary boundary, write one immutable report snapshot in the brain
 repository at:
@@ -83,11 +85,32 @@ derived from persisted mission records, not agent memory. It contains each
 mission ID, request summary, terminal status, result or blocker, Reggie brain
 SHA, project reference, Git or deployment reference, and required owner action.
 
-Use the same report content for the Slack daily summary. Post it only to
-`#dev_system-development-team` (`C074BCJGQGP`). Do not create a report when
-there was no mission activity.
+Write a weekly retrospective for the preceding completed Monday-through-Sunday
+period at:
 
-Before posting the Slack summary, commit and push the new daily report to the
+```text
+brain\weekly-reports\YYYY\YYYY-Www.md
+```
+
+Write a monthly retrospective for the preceding completed calendar month at:
+
+```text
+brain\monthly-reports\YYYY\YYYY-MM.md
+```
+
+Every daily, weekly, and monthly report must include these sections:
+
+1. `What worked well`: completed actions and positive requester evaluation, with mission IDs.
+2. `What did not work`: failures, blockers, rework, missing evidence, or negative requester evaluation, with mission IDs.
+3. `Improvements to better serve the user`: specific proposed changes grounded in the preceding sections.
+
+The reports may describe only actions and outcomes recorded in the completed period. If no mission activity occurred, state that fact and do not invent strengths, failures, or improvements.
+
+Post a concise link and summary of each completed report to the configured
+reporting channel. The daily report uses `#dev_system-development-team`
+(`C074BCJGQGP`) when that remains the configured reporting channel.
+
+Before posting the Slack summary, commit and push the new report to the
 Reggie brain repository. Record the report Git commit SHA in the Slack message
 and in the runner state. The report is the durable reviewable record even if
 Slack delivery fails.

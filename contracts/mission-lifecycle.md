@@ -11,6 +11,7 @@
 | Target project | `config/projects.yml` | Registered local path, origin URL, and upstream branch |
 | Project revision | Target worktree Git commit | Code revision inspected by the agent |
 | User evaluation | Newer explicit `@Reggie Agent` reply from the original requester in the original Slack thread | Approval or revision feedback for the current mission iteration |
+| Retrospective source | Persisted mission records, user evaluations, Slack delivery records, and artifact or pull-request references in the completed reporting period | Evidence for daily, weekly, and monthly reports |
 
 ## Agent input manifest
 
@@ -23,3 +24,5 @@ The runner must persist one mission record containing the mission ID; Slack mess
 ## Downstream requirements
 
 Each execution-result Slack message replies in the triggering message's thread, uses the original message language, and asks for evaluation with an explicit `@Reggie Agent` reply in that thread. An approval closes the mission. Revision feedback queues the next iteration of that same mission and is included in its agent input. A daily summary requires a separately configured reporting channel. Both are generated from persisted mission records.
+
+Every retrospective report must identify its completed reporting period and cite the mission IDs and evidence used for each conclusion. It must not infer outcomes, user satisfaction, or agent actions that are absent from the persisted records.

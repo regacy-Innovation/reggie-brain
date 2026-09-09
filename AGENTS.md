@@ -38,6 +38,8 @@ This repository contains operating policy, configuration, lightweight versioned 
 - `docs/`: Platform architecture, development conventions, and managed workspace layout.
 - `missions/`: versioned lightweight terminal mission records organized by date and mission ID.
 - `daily-reports/`: immutable, versioned daily activity summaries.
+- `weekly-reports/`: immutable, versioned weekly retrospectives.
+- `monthly-reports/`: immutable, versioned monthly retrospectives.
 - `ideas/`: explicitly captured idea records moving through `inbox`, `accepted`, and `archived`.
 
 Treat paths in `config/projects.yml` and `config/runtime.example.yml` as runner configuration values. Do not rewrite registered paths merely because the current inspection occurs on another operating system. Keep runtime state, credentials, raw logs, large or binary artifacts, and project source out of this repository as required by `docs/local-workspace.md` and `.gitignore`.
@@ -122,7 +124,7 @@ For a mission, Reggie may send a Slack message only to the triggering channel an
 
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread unrelated to the triggering mission.
 
-Daily reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push a daily report before announcing it in Slack. Commit and push every idea capture or idea-status change.
+Daily, weekly, and monthly retrospective reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push each report before announcing it in Slack. Commit and push every idea capture or idea-status change.
 
 Commit and push the lightweight terminal mission record to the Reggie brain repository. Keep binary and large artifacts, including PowerPoint decks, local. Record each local artifact's path and checksum in the versioned mission record.
 

@@ -22,8 +22,8 @@ Do not send a completion message for intermediate progress.
 
 Accept evaluation only when it is newer than the previous mission message, comes from the original requester, belongs to the original mission thread, and explicitly mentions `@Reggie Agent`. Route it to that awaiting-evaluation mission instead of creating a new mission. When the requester clearly approves, record the mission as `succeeded`. When the requester asks for changes or says they are not satisfied, record the feedback, queue the next iteration of that same mission, and use the feedback in that iteration. Do not infer approval from an unclear response. Continue this loop until approval, cancellation, failure, or `awaiting_owner_input`.
 
-## Daily summary
+## Retrospective reports
 
-At 09:00 Asia/Tokyo every day, the runner queries persisted mission records for activity during the prior 24 hours and sends one message to a separately configured reporting channel when at least one mission had activity.
+On the first scheduled agent check after each daily, weekly, or monthly reporting boundary, Reggie reviews only the completed period's persisted mission records, requester evaluations, Slack delivery records, and artifact or pull-request references. It writes and pushes one versioned retrospective report before posting a concise summary and link to the configured reporting channel. Do not create a duplicate report for the same period.
 
-The summary includes counts for succeeded, failed, cancelled, and awaiting-owner-input missions. For each mission, include the request, outcome or blocker, and GitHub or deployment reference when present. End with unresolved blockers and required owner actions. Do not send a daily summary when there was no activity in the period.
+Every report includes `What worked well`, `What did not work`, and `Improvements to better serve the user`. Every conclusion must name the supporting mission ID or report evidence. When no missions occurred in the period, state that no activity occurred and do not invent conclusions.
