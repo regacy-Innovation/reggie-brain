@@ -14,6 +14,8 @@ The message includes the mission ID, request summary, terminal status, result or
 
 Do not send a completion message for intermediate progress.
 
+When `SLACK_COMPLETION_TRANSPORT=plugin`, a successful Codex mission uses the configured Slack plugin's `slack_send_message` tool for this one terminal reply. The tool call must target the triggering channel and thread. The listener records `requested_via_plugin`; it uses the dedicated bot only when the mission fails before Codex can send the plugin reply.
+
 ## Daily summary
 
 At 09:00 Asia/Tokyo every day, the runner queries persisted mission records for activity during the prior 24 hours and sends one message to a separately configured reporting channel when at least one mission had activity.

@@ -15,6 +15,8 @@ This package runs on this computer. It keeps a Slack Socket Mode connection open
 
 The listener uses `runtime/missions.sqlite` for durable local state. It starts one Codex mission at a time. It does not discover Slack history: only a newly delivered `app_mention` starts a mission. Invite the dedicated bot into a channel to let that channel use Reggie; remove the bot to revoke access.
 
+`SLACK_COMPLETION_TRANSPORT=plugin` requires the Codex Slack plugin to be installed and connected on the local computer. On a successful mission, Codex sends the terminal reply with `slack_send_message` to the triggering channel and thread. Use `bot` to have the listener send every terminal reply with the dedicated bot token instead. Failures before Codex can send a reply always use the dedicated bot.
+
 Each coding request must begin with an exact registered project ID:
 
 ```text

@@ -43,6 +43,7 @@ dotenv.config({ path: join(defaultBrainPath, 'listener', '.env') });
 const brainPath = resolve(process.env.REGGIE_BRAIN_PATH || defaultBrainPath);
 const configuredRoleId = requiredEnvironment('REGGIE_ROLE');
 const codexBin = process.env.CODEX_BIN || 'codex';
+const completionTransport = process.env.SLACK_COMPLETION_TRANSPORT || 'bot';
 const stateRoot = resolve(process.env.REGGIE_STATE_ROOT || join(brainPath, 'runtime'));
 const worktreeRoot = resolve(process.env.REGGIE_WORKTREE_ROOT || join(brainPath, 'worktrees'));
 const projectCloneRoot = process.env.REGGIE_PROJECT_CLONE_ROOT?.trim()
@@ -95,6 +96,10 @@ const app = new App({
   socketMode: true,
   logLevel: LogLevel.INFO,
 });
+
+if (completionTransport !== 'bot' && completionTransport !== 'plugin') {
+  throw new Error('SLACK_COMPLETION_TRANSPORT must be bot or plugin');
+}
 
 let isRunningMission = false;
 
@@ -273,7 +278,7 @@ function terminalizeMission(id: string, status: 'succeeded' | 'failed', resultTe
   `).run(status, resultText, errorText || null, utcNow(), id);
 }
 
-function setSlackDeliveryState(id: string, state: 'delivered' | 'failed'): void {
+function setSlackDeliveryState(id: string, state: 'delivered' | 'failed' | 'requested_via_plugin'): void {
   database.prepare(`UPDATE missions SET slack_delivery_state = ? WHERE id = ?`).run(state, id);
 }
 
@@ -338,7 +343,7 @@ async function publishMissionBundle(directory: string, missionId: string): Promi
 }
 
 function codexPrompt(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string }): string {
-  return [
+  const instructions = [
     `Mission ID: ${mission.id}`,
     `Reggie brain: ${brainPath} at ${mission.brainSha}`,
     `Role: ${mission.roleId} (${mission.roleInstructionPath})`,
@@ -350,11 +355,14 @@ function codexPrompt(mission: Mission, project: RegisteredProject, worktree: { p
     '',
     'Read the shared Reggie brain instructions, contracts, policies, and selected role instructions at the paths above before acting.',
     'Work only in this mission worktree. Follow the project instructions. Do not deploy to production. Reply in the language of the Slack request.',
-    'Do not post to Slack; the local listener will report the terminal result.',
+    completionTransport === 'plugin'
+      ? `After successful completion, use the installed Slack plugin's slack_send_message tool exactly once with channel_id ${mission.channelId} and thread_ts ${mission.threadTs}. The reply must start with [mission ${mission.id}] [status succeeded], identify project ${project.id}, branch ${worktree.branch}, brain ${mission.brainSha}, changed files, and then give the result in the request language. Do not send a direct message or post to another channel or thread.`
+      : 'Do not post to Slack; the local listener will report the terminal result.',
     '',
     'Slack request:',
     mission.requestText,
-  ].join('\n');
+  ];
+  return instructions.join('\n');
 }
 
 function runCodex(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string }, resultPath: string): Promise<void> {
@@ -387,6 +395,25 @@ function boundedSlackText(text: string): string {
   return text.length <= 3_900 ? text : `${text.slice(0, 3_850)}\n\n[Result truncated in Slack; see mission record.]`;
 }
 
+function completionMessage(
+  mission: Mission,
+  status: 'succeeded' | 'failed',
+  worktree: { path: string; branch: string; startingRevision: string } | undefined,
+  files: string[],
+  result: string,
+): string {
+  const changedFiles = files.length === 0 ? 'none' : files.join(', ');
+  return [
+    `[mission ${mission.id}] [status ${status}]`,
+    `Project: ${mission.projectId}`,
+    `Branch: ${worktree?.branch || 'not created'}`,
+    `Brain: ${mission.brainSha}`,
+    `Changed files: ${changedFiles}`,
+    '',
+    result,
+  ].join('\n');
+}
+
 async function executeMission(mission: Mission): Promise<void> {
   const project = selectedProject(mission.projectId);
   let worktree: { path: string; branch: string; startingRevision: string } | undefined;
@@ -417,16 +444,21 @@ async function executeMission(mission: Mission): Promise<void> {
     writeFileSync(join(directory, 'result.md'), `Status: ${status}\n\n${result}\n`, 'utf8');
   }
   terminalizeMission(mission.id, status, result, errorText);
-  try {
-    await app.client.chat.postMessage({
-      channel: mission.channelId,
-      thread_ts: mission.threadTs,
-      text: boundedSlackText(result),
-    });
-    setSlackDeliveryState(mission.id, 'delivered');
-  } catch (error) {
-    setSlackDeliveryState(mission.id, 'failed');
-    console.error(`[reggie-local-listener] Slack delivery failed for ${mission.id}:`, error);
+  if (completionTransport === 'plugin' && status === 'succeeded') {
+    setSlackDeliveryState(mission.id, 'requested_via_plugin');
+  } else {
+    try {
+      const reply = completionMessage(mission, status, worktree, files, result);
+      await app.client.chat.postMessage({
+        channel: mission.channelId,
+        thread_ts: mission.threadTs,
+        text: boundedSlackText(reply),
+      });
+      setSlackDeliveryState(mission.id, 'delivered');
+    } catch (error) {
+      setSlackDeliveryState(mission.id, 'failed');
+      console.error(`[reggie-local-listener] Slack delivery failed for ${mission.id}:`, error);
+    }
   }
 }
 

@@ -118,7 +118,7 @@ For a mission, Reggie may send a Slack message only to the triggering channel an
 
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread unrelated to the triggering mission.
 
-The runner sends Slack messages from persisted mission records. Do not rely on a free-form agent response as the reporting mechanism.
+When `SLACK_COMPLETION_TRANSPORT=bot`, the listener sends terminal Slack messages from persisted mission records. When it is `plugin`, Codex sends a successful terminal reply through the configured Slack plugin and the listener records `requested_via_plugin`; the dedicated bot reports failures before Codex can reply.
 
 Daily reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push a daily report before announcing it in Slack. Commit and push every idea capture or idea-status change.
 
