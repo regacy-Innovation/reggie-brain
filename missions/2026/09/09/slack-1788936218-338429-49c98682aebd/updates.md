@@ -57,3 +57,13 @@ The requester instructed Reggie to include an explicit requester mention in ever
 # Plan change
 
 The requester said Slack responses are difficult to read without line breaks. Reggie acknowledged the feedback with a linked requester mention and committed to using paragraph breaks and short bullets that separate the result, remaining work, and next action.
+
+## plan_changed
+
+- Slack message: 1788975439.560599
+- Delivery: delivered
+- Recorded: 2026-09-09T17:37:39.895Z
+
+# Plan change
+
+The requester clarified that explicit recipient mentions are required for every Slack thread, not only the current thread. Reggie updated the shared repository entrypoint and Slack reporting policy, pushed commit `aa2a82701f8b71367f23c9dd68f87559e45a9c4e`, and acknowledged the global scope with a linked requester mention and readable paragraph breaks.
