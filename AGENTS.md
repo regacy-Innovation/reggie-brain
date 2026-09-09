@@ -69,7 +69,7 @@ Read `roles/README.md` and the selected role profile after this file. Role instr
 The persistent Reggie agent polls only its permitted Slack channels through its authenticated Slack connection. It must start a mission only when all of the following are true:
 
 - the message is newer than the agent's persisted polling cursor
-- the message text contains the configured Slack member mention for `@tomoya imai`
+- the message text contains the configured Slack member mention for `@Reggie Agent`
 - the message contains a channel ID, timestamp, and sender identity
 
 Do not process a message twice or replay older channel history. Ignore every message that does not meet the trigger contract. Preserve the original message language and reply in that language.

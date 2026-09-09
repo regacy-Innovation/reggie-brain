@@ -4,7 +4,7 @@ For a mission, post the outbound Slack message only to its triggering channel an
 
 ## Reactive mission trigger
 
-Continuously poll only the locally configured permitted channels through Reggie's authenticated Slack connection. Process a message only once, after its timestamp is newer than the persisted polling cursor and its text contains the configured member mention for `@tomoya imai`. Do not search or replay older channel history. Record the matched mention and message identity before starting the mission.
+Continuously poll only the locally configured permitted channels through Reggie's authenticated Slack connection. Process a message only once, after its timestamp is newer than the persisted polling cursor and its text contains the configured member mention for `@Reggie Agent`. Do not search or replay older channel history. Record the matched mention and message identity before starting the mission.
 
 ## Completion message
 
