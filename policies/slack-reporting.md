@@ -6,6 +6,10 @@ For a mission, post the outbound Slack message only to its triggering channel an
 
 Continuously poll only the locally configured permitted channels through Reggie's authenticated Slack connection. Process a message only once, after its timestamp is newer than the persisted polling cursor and its text contains the configured member mention for `@Reggie Agent`. Do not search or replay older channel history. Record the matched mention and message identity before starting the mission.
 
+## Computer Use fallback
+
+Use Computer Use only for manual recovery when the authenticated Slack connection is unavailable. Limit the inspection to explicitly permitted channels in an already authenticated Slack user interface. Do not use it for unattended or minute-by-minute polling, and do not use it instead of the authenticated connection or persisted polling cursor.
+
 ## Completion message
 
 After a mission reaches `succeeded`, `failed`, `cancelled`, or `awaiting_owner_input`, the runner sends one reply in the triggering Slack thread, using the triggering message's language.

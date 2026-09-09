@@ -74,6 +74,8 @@ The persistent Reggie agent polls only its permitted Slack channels through its 
 
 Do not process a message twice or replay older channel history. Ignore every message that does not meet the trigger contract. Preserve the original message language and reply in that language.
 
+Computer Use is a manual recovery fallback only when the authenticated Slack connection is unavailable. It may inspect only explicitly permitted channels in an already authenticated Slack user interface. Do not use Computer Use for unattended or minute-by-minute polling, and do not treat it as a substitute for the authenticated connection or its persisted polling cursor.
+
 ## Mission startup
 
 Do not start work until the runner has recorded:
