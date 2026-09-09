@@ -1,11 +1,13 @@
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { App, LogLevel } from '@slack/bolt';
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
 import { parse } from 'yaml';
 
 type RegisteredProject = {
@@ -33,7 +35,11 @@ type Mission = {
   roleInstructionPath: string;
   projectId: string;
   brainSha: string;
+  attachments: SlackAttachment[];
 };
+
+type SlackAttachment = { id: string; name?: string; mimetype?: string };
+type LocalAttachment = SlackAttachment & { localPath: string; extractedTextPath?: string };
 
 const listenerDirectory = dirname(fileURLToPath(import.meta.url));
 const defaultBrainPath = resolve(listenerDirectory, '..', '..');
@@ -43,15 +49,18 @@ dotenv.config({ path: join(defaultBrainPath, 'listener', '.env') });
 const brainPath = resolve(process.env.REGGIE_BRAIN_PATH || defaultBrainPath);
 const configuredRoleId = requiredEnvironment('REGGIE_ROLE');
 const codexBin = process.env.CODEX_BIN || 'codex';
+const slackBotToken = requiredEnvironment('SLACK_BOT_TOKEN');
 const completionTransport = process.env.SLACK_COMPLETION_TRANSPORT || 'bot';
 const stateRoot = resolve(process.env.REGGIE_STATE_ROOT || join(brainPath, 'runtime'));
 const worktreeRoot = resolve(process.env.REGGIE_WORKTREE_ROOT || join(brainPath, 'worktrees'));
+const artifactRoot = resolve(process.env.REGGIE_ARTIFACT_ROOT || join(brainPath, 'artifacts'));
 const projectCloneRoot = process.env.REGGIE_PROJECT_CLONE_ROOT?.trim()
   ? resolve(process.env.REGGIE_PROJECT_CLONE_ROOT)
   : null;
 
 mkdirSync(stateRoot, { recursive: true });
 mkdirSync(worktreeRoot, { recursive: true });
+mkdirSync(artifactRoot, { recursive: true });
 
 const database = new DatabaseSync(join(stateRoot, 'missions.sqlite'));
 database.exec(`
@@ -67,6 +76,7 @@ database.exec(`
     role_instruction_path TEXT NOT NULL,
     project_id TEXT NOT NULL,
     brain_sha TEXT NOT NULL,
+    attachments_json TEXT NOT NULL DEFAULT '[]',
     status TEXT NOT NULL,
     result_text TEXT,
     error_text TEXT,
@@ -81,16 +91,19 @@ const missionColumns = database.prepare('PRAGMA table_info(missions)').all() as 
 if (!missionColumns.some(column => column.name === 'slack_delivery_state')) {
   database.exec("ALTER TABLE missions ADD COLUMN slack_delivery_state TEXT NOT NULL DEFAULT 'pending'");
 }
+if (!missionColumns.some(column => column.name === 'attachments_json')) {
+  database.exec("ALTER TABLE missions ADD COLUMN attachments_json TEXT NOT NULL DEFAULT '[]'");
+}
 
 const insertMission = database.prepare(`
   INSERT OR IGNORE INTO missions (
     id, event_key, channel_id, message_ts, thread_ts, sender_id, request_text,
-    role_id, role_instruction_path, project_id, brain_sha, status, created_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'queued', ?)
+    role_id, role_instruction_path, project_id, brain_sha, attachments_json, status, created_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'queued', ?)
 `);
 
 const app = new App({
-  token: requiredEnvironment('SLACK_BOT_TOKEN'),
+  token: slackBotToken,
   appToken: requiredEnvironment('SLACK_APP_TOKEN'),
   signingSecret: requiredEnvironment('SLACK_SIGNING_SECRET'),
   socketMode: true,
@@ -230,6 +243,7 @@ function enqueueMission(mission: Mission): boolean {
     mission.roleInstructionPath,
     mission.projectId,
     mission.brainSha,
+    JSON.stringify(mission.attachments),
     utcNow(),
   );
   return result.changes === 1;
@@ -240,7 +254,7 @@ function claimNextMission(): Mission | null {
   try {
     const row = database.prepare(`
       SELECT id, channel_id, message_ts, thread_ts, sender_id, request_text,
-             role_id, role_instruction_path, project_id, brain_sha
+             role_id, role_instruction_path, project_id, brain_sha, attachments_json
       FROM missions
       WHERE status = 'queued'
       ORDER BY created_at
@@ -263,6 +277,7 @@ function claimNextMission(): Mission | null {
       roleInstructionPath: row.role_instruction_path,
       projectId: row.project_id,
       brainSha: row.brain_sha,
+      attachments: JSON.parse(row.attachments_json) as SlackAttachment[],
     };
   } catch (error) {
     database.exec('ROLLBACK');
@@ -302,6 +317,76 @@ function missionDirectory(missionId: string): string {
   return join(brainPath, 'missions', year, month, day, missionId);
 }
 
+function artifactDirectory(missionId: string): string {
+  const [year, month] = missionDateParts();
+  return join(artifactRoot, year, month, missionId);
+}
+
+function safeAttachmentName(attachment: SlackAttachment): string {
+  const name = basename((attachment.name || '').replaceAll('\\', '/'));
+  return name ? `${attachment.id}-${name}` : attachment.id;
+}
+
+async function extractAttachmentText(localPath: string): Promise<string | undefined> {
+  const extension = extname(localPath).toLowerCase();
+  if (['.txt', '.md', '.csv', '.json', '.yaml', '.yml'].includes(extension)) return readFileSync(localPath, 'utf8');
+  if (extension === '.docx') return (await mammoth.extractRawText({ path: localPath })).value;
+  if (extension === '.xlsx' || extension === '.xls') {
+    const workbook = XLSX.readFile(localPath);
+    return workbook.SheetNames.map(name => XLSX.utils.sheet_to_csv(workbook.Sheets[name])).join('\n\n');
+  }
+  if (extension === '.pdf') {
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const document = await pdfjs.getDocument({ data: readFileSync(localPath) }).promise;
+    const pages: string[] = [];
+    for (let number = 1; number <= document.numPages; number += 1) {
+      const page = await document.getPage(number);
+      const content = await page.getTextContent();
+      pages.push(content.items.map(item => 'str' in item ? item.str : '').join(' '));
+    }
+    return pages.join('\n\n');
+  }
+  return undefined;
+}
+
+async function downloadAttachments(mission: Mission): Promise<LocalAttachment[]> {
+  const directory = artifactDirectory(mission.id);
+  mkdirSync(directory, { recursive: true });
+  const attachments: LocalAttachment[] = [];
+  for (const attachment of mission.attachments) {
+    const details = await app.client.files.info({ file: attachment.id });
+    const file = details.file as { url_private_download?: string; url_private?: string; name?: string; mimetype?: string } | undefined;
+    const url = file?.url_private_download || file?.url_private;
+    if (!url) throw new Error(`Slack file ${attachment.id} has no downloadable URL`);
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${slackBotToken}` } });
+    if (!response.ok) throw new Error(`Slack file ${attachment.id} download failed with ${response.status}`);
+    const localPath = join(directory, safeAttachmentName({ ...attachment, name: file.name || attachment.name }));
+    writeFileSync(localPath, Buffer.from(await response.arrayBuffer()));
+    const extracted = await extractAttachmentText(localPath);
+    const extractedTextPath = extracted === undefined ? undefined : `${localPath}.extracted.txt`;
+    if (extracted !== undefined && extractedTextPath) writeFileSync(extractedTextPath, extracted, 'utf8');
+    attachments.push({ ...attachment, name: file.name || attachment.name, mimetype: file.mimetype || attachment.mimetype, localPath, extractedTextPath });
+  }
+  return attachments;
+}
+
+function attachmentManifest(attachments: LocalAttachment[], generatedPaths: string[]): string {
+  const inbound = attachments.map(attachment => {
+    const checksum = createHash('sha256').update(readFileSync(attachment.localPath)).digest('hex');
+    return [
+      `- Slack file ID: ${attachment.id}`,
+      `  local path: ${attachment.localPath}`,
+      `  sha256: ${checksum}`,
+      attachment.extractedTextPath ? `  extracted text: ${attachment.extractedTextPath}` : '',
+    ].filter(Boolean).join('\n');
+  });
+  const generated = generatedPaths.map(localPath => {
+    const checksum = createHash('sha256').update(readFileSync(localPath)).digest('hex');
+    return `- Generated artifact: ${localPath}\n  sha256: ${checksum}`;
+  });
+  return [...inbound, ...generated].join('\n') || 'No local binary artifacts were recorded.\n';
+}
+
 async function changedFiles(worktree: { path: string; startingRevision: string } | undefined): Promise<string[]> {
   if (!worktree) return [];
   const committed = await runCommand('git', ['diff', '--name-only', worktree.startingRevision], worktree.path);
@@ -309,7 +394,7 @@ async function changedFiles(worktree: { path: string; startingRevision: string }
   return [...new Set([...committed.stdout.split('\n'), ...untracked.stdout.split('\n')].map(value => value.trim()).filter(Boolean))];
 }
 
-function writeMissionBundle(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string } | undefined, status: string, result: string, files: string[]): string {
+function writeMissionBundle(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string } | undefined, status: string, result: string, files: string[], attachments: LocalAttachment[], generatedPaths: string[]): string {
   const directory = missionDirectory(mission.id);
   mkdirSync(directory, { recursive: true });
   writeFileSync(join(directory, 'request.md'), `${mission.requestText}\n`, 'utf8');
@@ -330,7 +415,7 @@ function writeMissionBundle(mission: Mission, project: RegisteredProject, worktr
   }, null, 2)}\n`, 'utf8');
   writeFileSync(join(directory, 'result.md'), `Status: ${status}\n\n${result}\n`, 'utf8');
   writeFileSync(join(directory, 'changed-files.txt'), files.length ? `${files.join('\n')}\n` : '', 'utf8');
-  writeFileSync(join(directory, 'artifacts.md'), 'No local binary artifacts were recorded.\n', 'utf8');
+  writeFileSync(join(directory, 'artifacts.md'), attachmentManifest(attachments, generatedPaths), 'utf8');
   return directory;
 }
 
@@ -342,7 +427,7 @@ async function publishMissionBundle(directory: string, missionId: string): Promi
   return currentBrainSha();
 }
 
-function codexPrompt(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string }): string {
+function codexPrompt(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string }, attachments: LocalAttachment[], outputDirectory: string): string {
   const instructions = [
     `Mission ID: ${mission.id}`,
     `Reggie brain: ${brainPath} at ${mission.brainSha}`,
@@ -352,9 +437,14 @@ function codexPrompt(mission: Mission, project: RegisteredProject, worktree: { p
     `Starting revision: ${worktree.startingRevision}`,
     `Development push branch: ${project.development_push_branch}`,
     `Worktree branch: ${worktree.branch}`,
+    `Mission artifact directory: ${outputDirectory}`,
     '',
     'Read the shared Reggie brain instructions, contracts, policies, and selected role instructions at the paths above before acting.',
     'Work only in this mission worktree. Follow the project instructions. Do not deploy to production. Reply in the language of the Slack request.',
+    attachments.length === 0
+      ? 'There are no attached Slack files.'
+      : `Attached Slack files:\n${attachments.map(attachment => `- ${attachment.localPath}${attachment.extractedTextPath ? ` (extracted text: ${attachment.extractedTextPath})` : ''}`).join('\n')}`,
+    'If the request requires a generated file, write it to the mission artifact directory so the listener can attach it to the Slack thread.',
     completionTransport === 'plugin'
       ? `After successful completion, use the installed Slack plugin's slack_send_message tool exactly once with channel_id ${mission.channelId} and thread_ts ${mission.threadTs}. The reply must start with [mission ${mission.id}] [status succeeded], identify project ${project.id}, branch ${worktree.branch}, brain ${mission.brainSha}, changed files, and then give the result in the request language. Do not send a direct message or post to another channel or thread.`
       : 'Do not post to Slack; the local listener will report the terminal result.',
@@ -365,7 +455,7 @@ function codexPrompt(mission: Mission, project: RegisteredProject, worktree: { p
   return instructions.join('\n');
 }
 
-function runCodex(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string }, resultPath: string): Promise<void> {
+function runCodex(mission: Mission, project: RegisteredProject, worktree: { path: string; branch: string; startingRevision: string }, resultPath: string, attachments: LocalAttachment[], outputDirectory: string): Promise<void> {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(codexBin, [
       'exec',
@@ -373,6 +463,8 @@ function runCodex(mission: Mission, project: RegisteredProject, worktree: { path
       '--sandbox', 'workspace-write',
       '--output-last-message', resultPath,
       '--add-dir', brainPath,
+      '--add-dir', outputDirectory,
+      ...attachments.filter(attachment => attachment.mimetype?.startsWith('image/')).flatMap(attachment => ['-i', attachment.localPath]),
       '-',
     ], {
       cwd: worktree.path,
@@ -387,7 +479,7 @@ function runCodex(mission: Mission, project: RegisteredProject, worktree: { path
       if (code === 0) resolvePromise();
       else rejectPromise(new Error(`Codex exited with code ${code}: ${stderr.trim()}`));
     });
-    child.stdin.end(codexPrompt(mission, project, worktree));
+    child.stdin.end(codexPrompt(mission, project, worktree, attachments, outputDirectory));
   });
 }
 
@@ -414,18 +506,40 @@ function completionMessage(
   ].join('\n');
 }
 
+async function uploadGeneratedArtifacts(mission: Mission, attachments: LocalAttachment[]): Promise<string[]> {
+  const directory = artifactDirectory(mission.id);
+  const inboundPaths = new Set(attachments.flatMap(attachment => [attachment.localPath, attachment.extractedTextPath].filter(Boolean)));
+  const uploaded: string[] = [];
+  for (const name of readdirSync(directory)) {
+    const localPath = join(directory, name);
+    if (inboundPaths.has(localPath)) continue;
+    await app.client.filesUploadV2({
+      channel_id: mission.channelId,
+      thread_ts: mission.threadTs,
+      file: localPath,
+      filename: name,
+    } as Parameters<typeof app.client.filesUploadV2>[0]);
+    uploaded.push(localPath);
+  }
+  return uploaded;
+}
+
 async function executeMission(mission: Mission): Promise<void> {
   const project = selectedProject(mission.projectId);
   let worktree: { path: string; branch: string; startingRevision: string } | undefined;
   let result = '';
   let status: 'succeeded' | 'failed' = 'failed';
   let errorText: string | undefined;
+  let attachments: LocalAttachment[] = [];
+  let generatedArtifacts: string[] = [];
   try {
     if (await currentBrainSha() !== mission.brainSha) throw new Error('Reggie brain revision changed after this mission was queued');
     worktree = await createWorktree(mission, project);
+    attachments = await downloadAttachments(mission);
     const resultPath = join(stateRoot, `${mission.id}.last-message.md`);
-    await runCodex(mission, project, worktree, resultPath);
+    await runCodex(mission, project, worktree, resultPath, attachments, artifactDirectory(mission.id));
     result = readFileSync(resultPath, 'utf8').trim() || 'Codex completed without a terminal message.';
+    generatedArtifacts = await uploadGeneratedArtifacts(mission, attachments);
     status = 'succeeded';
   } catch (error) {
     errorText = error instanceof Error ? error.message : String(error);
@@ -433,7 +547,7 @@ async function executeMission(mission: Mission): Promise<void> {
   }
 
   const files = await changedFiles(worktree).catch(() => []);
-  const directory = writeMissionBundle(mission, project, worktree, status, result, files);
+  const directory = writeMissionBundle(mission, project, worktree, status, result, files, attachments, generatedArtifacts);
   try {
     await publishMissionBundle(directory, mission.id);
   } catch (error) {
@@ -496,6 +610,10 @@ app.event('app_mention', async ({ event }) => {
   const brainSha = await syncBrain();
   const role = selectedRole();
   const project = selectedProject(parsedRequest.projectId);
+  const eventFiles = (event as unknown as { files?: Array<{ id?: string; name?: string; mimetype?: string }> }).files || [];
+  const attachments = eventFiles
+    .filter(file => typeof file.id === 'string' && file.id)
+    .map(file => ({ id: file.id!, name: file.name, mimetype: file.mimetype }));
   const mission: Mission = {
     id: randomUUID(),
     channelId: event.channel,
@@ -507,6 +625,7 @@ app.event('app_mention', async ({ event }) => {
     roleInstructionPath: role.instruction_path,
     projectId: project.id,
     brainSha,
+    attachments,
   };
   if (enqueueMission(mission)) void drainQueue();
 });

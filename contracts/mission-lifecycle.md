@@ -4,7 +4,7 @@
 
 | Input | Authority | Required meaning |
 | --- | --- | --- |
-| Slack request | Newly delivered Slack message event stored by the runner | Original request, sender, channel, message timestamp, thread timestamp, original message language, and the matched configured member mention |
+| Slack request | Newly delivered Slack message event stored by the runner | Original request, sender, channel, message timestamp, thread timestamp, original message language, matched bot mention, and attached Slack file IDs, names, and MIME types |
 | Slack trigger configuration | Local listener configuration | Installed Reggie bot identity and its Slack channel membership |
 | Brain revision | Reggie brain Git commit | Exact instructions used for this mission |
 | Role selection | `REGGIE_ROLE` validated against `config/roles.yml` | Role ID and Git-versioned role instruction path used for this mission |
@@ -13,7 +13,7 @@
 
 ## Agent input manifest
 
-The agent receives only the original request, the instruction to reply in the original message language, shared brain instructions, the selected role instructions, selected project registration when applicable, relevant project instructions, and files explicitly read from the selected worktree. It must not receive whole database records, unrelated repository contents, secrets, or other mission transcripts.
+The agent receives only the original request, the instruction to reply in the original message language, shared brain instructions, the selected role instructions, selected project registration when applicable, relevant project instructions, explicitly downloaded Slack artifact paths, extracted-text paths when available, and files explicitly read from the selected worktree. It must not receive whole database records, unrelated repository contents, secrets, or other mission transcripts.
 
 ## Persisted outputs
 

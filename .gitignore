@@ -4,6 +4,7 @@ config/projects.local.yml
 runtime/
 jobs/
 worktrees/
+artifacts/
 listener/node_modules/
 listener/dist/
 listener/.env

@@ -8,7 +8,7 @@ This package runs on this computer. It keeps a Slack Socket Mode connection open
 2. Clone this repository to any local directory, such as `C:\Reggie\brain` on Windows or `/Users/<user>/Reggie/brain` on macOS.
 3. Copy the repository's `.env.example` to its local `.env`. Keep `REGGIE_ROLE=developer` there.
 4. For each project Reggie may change, clone its exact `origin` from `config/projects.yml` anywhere on the computer. Copy `config/projects.local.example.yml` to ignored `config/projects.local.yml` and map each registered project ID to its actual local clone path. Alternatively, set `REGGIE_PROJECT_CLONE_ROOT` when every clone is stored below one root as `<root>/<project-id>`.
-5. Create a dedicated Slack app and bot for this local listener, enable Socket Mode and the `app_mention` event, and grant the bot `app_mentions:read` and `chat:write`. Do not reuse the online listener's Slack app credentials, because both listeners would receive the same event.
+5. Create a dedicated Slack app and bot for this local listener, enable Socket Mode and the `app_mention` event, and grant the bot `app_mentions:read`, `chat:write`, and `files:read`. Do not reuse the online listener's Slack app credentials, because both listeners would receive the same event.
 6. Copy `.env.example` to `.env` in this directory. Set the dedicated Slack app credentials. Keep the local roots shown in the example unless the computer uses a different location.
 7. Run `npm ci` in this directory.
 8. Run `npm start`. Keep the process running through a Windows startup task or service.
@@ -28,3 +28,5 @@ This prevents the listener from guessing a repository from request text.
 Before creating a worktree, the listener verifies that the local clone's `origin` exactly matches the registry. It never treats a local folder with the same name as a valid project clone.
 
 Each mission creates `worktrees/<mission-id>/<project-id>` under the brain repository, runs Codex there, and records a terminal bundle under `missions/YYYY/MM/DD/<mission-id>/`. The listener sends the terminal result to the original Slack thread.
+
+Files attached to the triggering Slack message are downloaded into the local mission artifact folder. Images are passed to Codex as image inputs. PDF, DOCX, XLSX, CSV, JSON, Markdown, and plain-text attachments receive an extracted text artifact for Codex. Codex may write requested deliverables into the mission artifact folder; the listener uploads those generated files to the original Slack thread.

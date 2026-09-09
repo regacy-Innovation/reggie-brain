@@ -19,7 +19,7 @@ For installation on a new computer, follow [`listener/README.md`](listener/READM
 
 ## Runner bootstrap contract
 
-For every new mission, the runner must fetch and fast-forward this repository; read the current `AGENTS.md`, applicable shared policy files, and the `REGGIE_ROLE` profile selected from `config/roles.yml`; record this repository's commit SHA and selected role; then follow that role's project and delivery requirements. It sends reporting messages only to the configured permitted Slack channel from persisted mission records.
+For every new mission, the runner must fetch and fast-forward this repository; read the current `AGENTS.md`, applicable shared policy files, and the `REGGIE_ROLE` profile selected from `config/roles.yml`; record this repository's commit SHA and selected role; then follow that role's project and delivery requirements. It replies only in the triggering Slack thread from persisted mission records or the configured Slack plugin completion path.
 
 This repository contains no Slack token, GitHub token, API key, or other credentials. The non-secret Slack routing identifiers in `config/runtime.example.yml` are configuration examples; real runtime values and all credentials stay outside Git.
 
