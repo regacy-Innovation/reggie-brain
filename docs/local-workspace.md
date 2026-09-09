@@ -63,6 +63,7 @@ missions\YYYY\MM\DD\<mission-id>\
   request.md              # Original request and Slack message identity
   context.json            # Brain SHA, project IDs, starting revisions, branches
   result.md               # Terminal result, evidence, Git and deployment references
+  updates.md              # Acknowledgements, progress messages, and plan changes
   changed-files.txt       # Changed paths only
   artifacts.md            # References to local binary artifacts and checksums
 ```

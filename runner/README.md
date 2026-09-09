@@ -49,7 +49,18 @@ node runner/src/index.mjs claim \
   --event /absolute/path/to/candidate.json
 ```
 
-The command validates the configured role, creates a mission bundle under `missions/YYYY/MM/DD/`, and prints the mission ID. After every execution, deliver the result in the original Slack thread and ask the requester to reply with an explicit `@Reggie Agent` mention to approve it or request changes. Then persist the result as awaiting evaluation:
+The command validates the configured role, creates a mission bundle under `missions/YYYY/MM/DD/`, and prints the mission ID. For substantive work, first send an acknowledgement in the Slack thread and record it:
+
+```sh
+node runner/src/index.mjs record-update \
+  --mission <mission-id> \
+  --phase acknowledged \
+  --message-id <slack-message-ts> \
+  --delivery-state delivered \
+  --summary-file /absolute/path/to/acknowledgement.md
+```
+
+Use the same command with `progress` after a material stage or when work remains in progress at a later scheduled check. Use `plan_changed` after the requester changes the active mission's request or plan. After every execution, deliver the result in the original Slack thread and ask the requester to reply with an explicit `@Reggie Agent` mention to approve it or request changes. Record the completion reply with `--phase completed`, then persist the result as awaiting evaluation:
 
 ```sh
 node runner/src/index.mjs complete \

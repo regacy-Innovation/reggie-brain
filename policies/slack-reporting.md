@@ -12,13 +12,23 @@ Until a programmatic authenticated Slack connection is configured, an owner-appr
 
 For installation on another machine, schedule the temporary ingress in Asia/Tokyo time: every 10 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes outside that window. The schedules must not overlap.
 
+## Mission communication phases
+
+When a request needs work beyond an immediate answer, including a system update, code change, file creation, or file update, send an acknowledgement in the triggering Slack thread after the mission is recorded and before starting the work. Use the requester's language. State the understood request and the first work step.
+
+While that work is in progress, send a progress update when a material stage has been completed, when the task is still in progress at a later scheduled check, or when a blocker changes the expected path. State what Reggie is working on, what has been completed, and what remains. Do not wait until final completion to disclose material progress. Do not send duplicate updates with no material change.
+
+Record every acknowledgement, progress update, and completion reply with its Slack message identity and delivery state in the mission evidence.
+
+When the original requester sends a newer explicit `@Reggie Agent` reply in the active mission thread that changes the request or plan, record it as a plan change for that mission rather than creating a new mission. Apply the changed instruction, revise the remaining plan, and acknowledge the revised plan in the same thread before continuing. If the changed instruction conflicts with a required boundary, explain the blocker and request the necessary decision.
+
 ## Completion message
 
 After each execution, Reggie sends one result reply in the triggering Slack thread, using the triggering message's language. It asks the requester to reply in that thread with an explicit `@Reggie Agent` mention and state whether the result is satisfactory.
 
 The message includes the mission ID, request summary, terminal status, result or blocker, Reggie brain commit SHA, target repository, branch, changed-file list, and Git commit, pull request, or deployment reference when present. It also states the next action required from the owner when the status requires one.
 
-Do not send a completion message for intermediate progress.
+Do not label an acknowledgement or progress update as a completion message.
 
 Accept evaluation only when it is newer than the previous mission message, comes from the original requester, belongs to the original mission thread, and explicitly mentions `@Reggie Agent`. Route it to that awaiting-evaluation mission instead of creating a new mission. When the requester clearly approves, record the mission as `succeeded`. When the requester asks for changes or says they are not satisfied, record the feedback, queue the next iteration of that same mission, and use the feedback in that iteration. Do not infer approval from an unclear response. Continue this loop until approval, cancellation, failure, or `awaiting_owner_input`.
 

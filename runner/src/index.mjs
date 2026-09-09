@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 const brainPath = resolve(import.meta.dirname, '..', '..');
@@ -8,7 +8,7 @@ const defaultConfigPath = join(brainPath, 'config', 'runtime.local.json');
 const defaultStatePath = join(brainPath, 'runtime', 'poll-state.json');
 
 function usage() {
-  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
+  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | record-update --mission <id> --phase <acknowledged|progress|plan_changed|completed> --message-id <id> --delivery-state <state> --summary-file <file> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
 }
 
 function parseArguments(argumentsList) {
@@ -162,6 +162,7 @@ function writeMissionBundle(mission, config) {
   });
   writeFileSync(join(directory, 'changed-files.txt'), '');
   writeFileSync(join(directory, 'artifacts.md'), '# Artifacts\n\nNone.\n');
+  writeFileSync(join(directory, 'updates.md'), '# Mission updates\n');
   return directory;
 }
 
@@ -260,6 +261,28 @@ function start(values) {
   return { action: 'started', missionId: id, iteration: mission.iteration };
 }
 
+function recordUpdate(values) {
+  const statePath = resolve(values.get('state') || defaultStatePath);
+  const state = loadState(statePath);
+  const id = required(values, 'mission');
+  const mission = state.missions[id];
+  if (!mission) throw new Error(`Unknown mission: ${id}`);
+  const phase = required(values, 'phase');
+  if (!['acknowledged', 'progress', 'plan_changed', 'completed'].includes(phase)) {
+    throw new Error(`Unsupported update phase: ${phase}`);
+  }
+  const messageId = required(values, 'message-id');
+  const deliveryState = required(values, 'delivery-state');
+  const summary = readFileSync(resolve(required(values, 'summary-file')), 'utf8').trim();
+  const recordedAt = new Date().toISOString();
+  const update = { phase, messageId, deliveryState, recordedAt };
+  mission.updates = mission.updates || [];
+  mission.updates.push(update);
+  appendFileSync(join(mission.directory, 'updates.md'), `\n## ${phase}\n\n- Slack message: ${messageId}\n- Delivery: ${deliveryState}\n- Recorded: ${recordedAt}\n\n${summary}\n`);
+  writeJsonAtomically(statePath, state);
+  return { action: 'update_recorded', missionId: id, phase, messageId, deliveryState };
+}
+
 function complete(values) {
   const statePath = resolve(values.get('state') || defaultStatePath);
   const state = loadState(statePath);
@@ -352,6 +375,7 @@ try {
   else if (command === 'claim') result = claim(values);
   else if (command === 'next') result = next(values);
   else if (command === 'start') result = start(values);
+  else if (command === 'record-update') result = recordUpdate(values);
   else if (command === 'complete') result = complete(values);
   else if (command === 'evaluate') result = evaluate(values);
   else usage();

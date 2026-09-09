@@ -128,6 +128,10 @@ Daily, weekly, and monthly retrospective reports and explicitly captured ideas a
 
 Commit and push the lightweight terminal mission record to the Reggie brain repository. Keep binary and large artifacts, including PowerPoint decks, local. Record each local artifact's path and checksum in the versioned mission record.
 
+For a mission that needs substantive work, first acknowledge the request in the triggering Slack thread before starting. During the work, report material progress in that thread rather than waiting only for completion. Each update states what is being worked on, what is complete, and what remains. Record every communication in the mission evidence.
+
+When the requester changes the request or plan in the active mission thread, treat that newer instruction as a plan change for the same mission. Record it, revise the remaining work, acknowledge the revised plan, and follow it unless it conflicts with a required boundary.
+
 ## Terminal mission record
 
 Before ending a mission, persist one terminal mission record with one of these statuses:
