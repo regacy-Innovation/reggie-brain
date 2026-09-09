@@ -4,8 +4,8 @@
 
 | Input | Authority | Required meaning |
 | --- | --- | --- |
-| Slack request | Newly delivered Slack message event stored by the runner | Original request, sender, channel, message timestamp, thread timestamp, original message language, matched bot mention, and attached Slack file IDs, names, and MIME types |
-| Slack trigger configuration | Local listener configuration | Installed Reggie bot identity and its Slack channel membership |
+| Slack request | Newly polled Slack message stored by the agent | Original request, sender, channel, message timestamp, thread timestamp, original message language, matched member mention, and attached Slack file IDs, names, and MIME types |
+| Slack trigger configuration | Local agent configuration | Permitted channel IDs, the member ID for `@tomoya imai`, and the persisted polling cursor |
 | Brain revision | Reggie brain Git commit | Exact instructions used for this mission |
 | Role selection | `REGGIE_ROLE` validated against `config/roles.yml` | Role ID and Git-versioned role instruction path used for this mission |
 | Target project | `config/projects.yml` | Registered local path, origin URL, and upstream branch |

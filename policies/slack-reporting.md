@@ -4,7 +4,7 @@ For a mission, post the outbound Slack message only to its triggering channel an
 
 ## Reactive mission trigger
 
-Process only newly delivered Slack `app_mention` events in channels where the installed Reggie bot is present. Do not poll, crawl, search, or replay Slack history to find requests. Record the matched mention and message identity before starting the mission.
+Continuously poll only the locally configured permitted channels through Reggie's authenticated Slack connection. Process a message only once, after its timestamp is newer than the persisted polling cursor and its text contains the configured member mention for `@tomoya imai`. Do not search or replay older channel history. Record the matched mention and message identity before starting the mission.
 
 ## Completion message
 
@@ -13,8 +13,6 @@ After a mission reaches `succeeded`, `failed`, `cancelled`, or `awaiting_owner_i
 The message includes the mission ID, request summary, terminal status, result or blocker, Reggie brain commit SHA, target repository, branch, changed-file list, and Git commit, pull request, or deployment reference when present. It also states the next action required from the owner when the status requires one.
 
 Do not send a completion message for intermediate progress.
-
-When `SLACK_COMPLETION_TRANSPORT=plugin`, a successful Codex mission uses the configured Slack plugin's `slack_send_message` tool for this one terminal reply. The tool call must target the triggering channel and thread. The listener records `requested_via_plugin`; it uses the dedicated bot only when the mission fails before Codex can send the plugin reply.
 
 ## Daily summary
 

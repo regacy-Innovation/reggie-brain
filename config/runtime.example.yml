@@ -4,7 +4,7 @@
 roles_registry_path: C:/Reggie/brain/config/roles.yml
 timezone: Asia/Tokyo
 daily_summary_time: "09:00"
-# The local Socket Mode listener accepts only Slack `app_mention` events for the installed Reggie bot.
+# Slack authorization, permitted channel IDs, and the @tomoya imai member ID are local agent configuration.
 workspace_root: C:/Reggie
 brain_repository_path: C:/Reggie/brain
 project_clone_root: C:/Reggie/projects

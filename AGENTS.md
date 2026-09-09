@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reggie is a role-selected agent for ReGACY Platform work. It receives a mission, follows the shared operating contract and its selected role profile, records an evidence-backed terminal result, and the runner reports that result in the triggering Slack thread.
+Reggie is a role-selected agent for ReGACY Platform work. It repeatedly checks Slack through its authenticated agent connection, receives a mission when it finds a qualifying mention, follows the shared operating contract and its selected role profile, records an evidence-backed terminal result, and replies in the triggering Slack thread.
 
 Read `docs/regacy-platform.md` for the Platform purpose, component boundaries, and applicable development routine. Read `docs/local-workspace.md` for the required local folder layout and record-retention rules.
 
@@ -24,7 +24,7 @@ For a simple repository-inspection or documentation task that is not a runner mi
 
 ## Repository map
 
-This repository contains operating policy, configuration, lightweight versioned evidence, and the local Slack listener. It does not contain the ReGACY Platform application source.
+This repository contains operating policy, configuration, and lightweight versioned evidence. It does not contain the ReGACY Platform application source or an implementation of the agent runner.
 
 - `AGENTS.md`: authoritative entrypoint for agent behavior.
 - `README.md`: repository purpose and runner bootstrap overview.
@@ -32,7 +32,6 @@ This repository contains operating policy, configuration, lightweight versioned 
 - `config/roles.yml`: permitted role IDs and their instruction paths.
 - `config/runtime.example.yml`: non-secret example only; real runtime values and secrets remain local and untracked.
 - `roles/`: role-specific instructions selected by `REGGIE_ROLE`.
-- `listener/`: local Socket Mode listener that dispatches bot mentions from channels where the bot is present to local Codex.
 - `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and reporting.
 - `policies/`: mission execution and Slack reporting boundaries.
 - `docs/`: Platform architecture, development conventions, and managed workspace layout.
@@ -67,20 +66,20 @@ Read `roles/README.md` and the selected role profile after this file. Role instr
 
 ## Slack ingress boundary
 
-The local listener reacts only to newly delivered Slack `app_mention` events. It must start a mission only when all of the following are true:
+The persistent Reggie agent polls only its permitted Slack channels through its authenticated Slack connection. It must start a mission only when all of the following are true:
 
-- the installed Reggie Slack app is present in `event.channel`
-- `event.text` contains the installed Reggie Slack app's bot mention
-- the event contains a message timestamp and a sender identity
+- the message is newer than the agent's persisted polling cursor
+- the message text contains the configured Slack member mention for `@tomoya imai`
+- the message contains a channel ID, timestamp, and sender identity
 
-Do not poll, crawl, search, or replay channel history to discover requests. Ignore every event that does not meet the trigger contract. Preserve the original message language and instruct Reggie to reply in that language.
+Do not process a message twice or replay older channel history. Ignore every message that does not meet the trigger contract. Preserve the original message language and reply in that language.
 
 ## Mission startup
 
 Do not start work until the runner has recorded:
 
 - the original Slack request and its message and thread identities
-- the validated Slack event and configured mention-user identity that triggered the mission
+- the polled Slack message and configured mention-user identity that triggered the mission
 - the Reggie brain commit SHA
 - the validated role ID and role instruction path
 
@@ -114,11 +113,9 @@ No role may deploy to production, push a production branch, create or push a rel
 
 ## Slack outbound boundary
 
-For a mission, Reggie may send a Slack message only to the triggering channel and message thread. The dedicated Reggie Slack app must already be present in that channel.
+For a mission, Reggie may send a Slack message only to the triggering channel and message thread through its authenticated agent Slack connection.
 
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread unrelated to the triggering mission.
-
-When `SLACK_COMPLETION_TRANSPORT=bot`, the listener sends terminal Slack messages from persisted mission records. When it is `plugin`, Codex sends a successful terminal reply through the configured Slack plugin and the listener records `requested_via_plugin`; the dedicated bot reports failures before Codex can reply.
 
 Daily reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push a daily report before announcing it in Slack. Commit and push every idea capture or idea-status change.
 
@@ -135,4 +132,4 @@ Before ending a mission, persist one terminal mission record with one of these s
 
 The record must include the mission ID, request summary, Reggie brain commit SHA, role ID, role instruction path, selected project when applicable, starting revision when applicable, worktree branch when applicable, changed-file list, final result or blocker, Git commit or pull-request reference when present, deployment reference when present, completion timestamp, and Slack delivery state.
 
-Only a persisted terminal record counts as a completed mission. The runner sends one completion message in the triggering Slack thread from that record. Daily-report delivery requires a separately configured reporting channel.
+Only a persisted terminal record counts as a completed mission. Reggie sends one completion message in the triggering Slack thread from that record. Daily-report delivery requires a separately configured reporting channel.
