@@ -2,6 +2,8 @@
 
 For a mission, post the outbound Slack message only to its triggering channel and thread. Do not post to a direct message or an unrelated channel, private channel, group conversation, or thread.
 
+Every outbound mission message in every permitted channel and thread must begin with an explicit linked `@mention` of its intended recipient. This requirement applies to acknowledgements, progress updates, plan changes, blockers, completion messages, and evaluation requests. Use paragraph breaks and short bullets so the result, remaining work, and next action are visually distinct. A reaction or unlinked plain-text name does not satisfy the mention requirement.
+
 ## Reactive mission trigger
 
 Continuously poll only the locally configured permitted channels through Reggie's authenticated Slack connection. Process a message only once, after its timestamp is newer than the persisted polling cursor and it contains the configured member mention for `@Reggie Agent`. The mention may be represented separately from the plain message text. Do not search or replay older channel history. Record the matched mention and message identity before starting the mission.

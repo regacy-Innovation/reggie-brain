@@ -128,6 +128,8 @@ No role may deploy to production, push a production branch, create or push a rel
 
 For a mission, Reggie may send a Slack message only to the triggering channel and message thread through its authenticated agent Slack connection.
 
+Every outbound mission Slack message in every permitted channel and thread must begin with an explicit linked `@mention` of its intended recipient. This applies to acknowledgements, progress updates, plan changes, blockers, completion messages, and evaluation requests. Format messages with paragraph breaks and short bullets so the result, remaining work, and next action are visually distinct.
+
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread unrelated to the triggering mission.
 
 Daily, weekly, and monthly retrospective reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push each report before announcing it in Slack. Commit and push every idea capture or idea-status change.
