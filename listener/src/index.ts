@@ -46,6 +46,9 @@ const configuredRoleId = requiredEnvironment('REGGIE_ROLE');
 const codexBin = process.env.CODEX_BIN || 'codex';
 const stateRoot = resolve(process.env.REGGIE_STATE_ROOT || join(brainPath, 'runtime'));
 const worktreeRoot = resolve(process.env.REGGIE_WORKTREE_ROOT || join(brainPath, 'worktrees'));
+const projectCloneRoot = process.env.REGGIE_PROJECT_CLONE_ROOT?.trim()
+  ? resolve(process.env.REGGIE_PROJECT_CLONE_ROOT)
+  : null;
 
 mkdirSync(stateRoot, { recursive: true });
 mkdirSync(worktreeRoot, { recursive: true });
@@ -133,6 +136,10 @@ function selectedRole(): RegisteredRole {
   const matches = loadRoles().filter(role => role.id === configuredRoleId);
   if (matches.length !== 1) throw new Error(`REGGIE_ROLE must match exactly one registered role: ${configuredRoleId}`);
   return matches[0];
+}
+
+function localProjectPath(project: RegisteredProject): string {
+  return projectCloneRoot ? join(projectCloneRoot, project.id) : resolve(project.local_path);
 }
 
 function runCommand(command: string, argumentsList: string[], cwd?: string): Promise<{ stdout: string; stderr: string }> {
@@ -257,10 +264,15 @@ function setSlackDeliveryState(id: string, state: 'delivered' | 'failed'): void 
 async function createWorktree(mission: Mission, project: RegisteredProject): Promise<{ path: string; branch: string; startingRevision: string }> {
   const worktreePath = join(worktreeRoot, mission.id, project.id);
   const branch = `reggie/${mission.id}`;
+  const clonePath = localProjectPath(project);
   mkdirSync(dirname(worktreePath), { recursive: true });
-  await runCommand('git', ['fetch', 'origin', project.upstream_branch], project.local_path);
-  const revision = await runCommand('git', ['rev-parse', `origin/${project.upstream_branch}`], project.local_path);
-  await runCommand('git', ['worktree', 'add', '-b', branch, worktreePath, `origin/${project.upstream_branch}`], project.local_path);
+  const configuredOrigin = await runCommand('git', ['config', '--get', 'remote.origin.url'], clonePath);
+  if (configuredOrigin.stdout.trim() !== project.origin) {
+    throw new Error(`Registered origin does not match local clone for ${project.id}`);
+  }
+  await runCommand('git', ['fetch', 'origin', project.upstream_branch], clonePath);
+  const revision = await runCommand('git', ['rev-parse', `origin/${project.upstream_branch}`], clonePath);
+  await runCommand('git', ['worktree', 'add', '-b', branch, worktreePath, `origin/${project.upstream_branch}`], clonePath);
   return { path: worktreePath, branch, startingRevision: revision.stdout.trim() };
 }
 

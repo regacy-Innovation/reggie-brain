@@ -4,6 +4,8 @@ Versioned shared and role-specific operating instructions, plus the local Slack 
 
 The runner updates this repository before each mission, records the checked-out commit SHA in the mission record, then starts the selected role in the required mission context. `AGENTS.md` is the entrypoint for the agent.
 
+For installation on a new computer, follow [`listener/README.md`](listener/README.md). It covers the local folder layout, dedicated Slack app, local project clones, and startup process.
+
 ## Repository contents
 
 - `AGENTS.md` defines shared agent behavior.
