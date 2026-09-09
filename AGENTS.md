@@ -128,6 +128,8 @@ Do not send a direct message. Do not post to another public channel, private cha
 
 Daily, weekly, and monthly retrospective reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push each report before announcing it in Slack. Commit and push every idea capture or idea-status change.
 
+The retrospective reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo. Use Asia/Tokyo dates for report paths and completed-period labels.
+
 Commit and push the lightweight terminal mission record to the Reggie brain repository. Keep binary and large artifacts, including PowerPoint decks, local. Record each local artifact's path and checksum in the versioned mission record.
 
 For a mission that needs substantive work, first acknowledge the request in the triggering Slack thread before starting. During the work, report material progress in that thread rather than waiting only for completion. Each update states what is being worked on, what is complete, and what remains. Record every communication in the mission evidence.

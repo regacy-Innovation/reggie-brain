@@ -3,7 +3,8 @@
 # Do not copy role instructions into this file or into .env.
 roles_registry_path: C:/Reggie/brain/config/roles.yml
 timezone: Asia/Tokyo
-daily_summary_time: "09:00"
+# 09:00 UTC
+daily_summary_time: "18:00"
 # Slack authorization, permitted channel IDs, and the @Reggie Agent member ID are local agent configuration.
 workspace_root: C:/Reggie
 brain_repository_path: C:/Reggie/brain

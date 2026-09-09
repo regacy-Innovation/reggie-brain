@@ -2,6 +2,8 @@
 
 Create daily, weekly, and monthly reports from Reggie's own persisted work in the completed period. Use Asia/Tokyo dates.
 
+The reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo. Run the report check at that instant.
+
 - Daily: the preceding 24 hours.
 - Weekly: the preceding completed Monday-through-Sunday period.
 - Monthly: the preceding completed calendar month.

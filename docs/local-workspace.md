@@ -74,8 +74,8 @@ data, duplicate project source files, raw logs, or binary artifacts in it.
 
 ## Retrospective reports
 
-At the daily-summary boundary, write one immutable report snapshot in the brain
-repository at:
+At the 09:00 UTC daily-summary boundary, which is 18:00 Asia/Tokyo, write one
+immutable report snapshot in the brain repository at:
 
 ```text
 brain\daily-reports\YYYY\MM\YYYY-MM-DD.md

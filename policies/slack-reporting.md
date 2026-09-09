@@ -38,6 +38,6 @@ Accept evaluation only when it is newer than the previous mission message, comes
 
 ## Retrospective reports
 
-On the first scheduled agent check after each daily, weekly, or monthly reporting boundary, Reggie reviews only the completed period's persisted mission records, requester evaluations, Slack delivery records, and artifact or pull-request references. It writes and pushes one versioned retrospective report before posting a concise summary and link to the configured reporting channel. Do not create a duplicate report for the same period.
+The reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo. On the scheduled agent check at that boundary, Reggie reviews only the completed period's persisted mission records, requester evaluations, Slack delivery records, and artifact or pull-request references. It writes and pushes one versioned retrospective report before posting a concise summary and link to the configured reporting channel. Do not create a duplicate report for the same period.
 
 Every report includes `What worked well`, `What did not work`, and `Improvements to better serve the user`. Every conclusion must name the supporting mission ID or report evidence. When no missions occurred in the period, state that no activity occurred and do not invent conclusions.
