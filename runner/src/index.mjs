@@ -187,9 +187,8 @@ function claim(values) {
   const config = loadConfig(configPath);
   const role = selectedRole(config);
   const event = readJson(resolve(required(values, 'event')), 'candidate event');
-  const visibleMention = `@${config.slack.agentDisplayName}`;
-  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.includes(visibleMention)) {
-    throw new Error('Candidate event must contain message text and an explicit verified Reggie mention');
+  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.trim()) {
+    throw new Error('Candidate event must contain message text and a verified explicit Reggie mention');
   }
   for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Candidate event is missing ${property}`);
@@ -197,7 +196,7 @@ function claim(values) {
   if (event.mentionedUserId !== config.slack.agentUserId) {
     throw new Error('Candidate event mentions a different Slack member');
   }
-  if (event.senderId === config.slack.agentDisplayName) {
+  if (event.senderId === config.slack.agentUserId) {
     throw new Error('Candidate event was authored by Reggie Agent');
   }
   const channel = permittedChannel(config, event.channelId);
@@ -319,15 +318,15 @@ function evaluate(values) {
   const outcome = required(values, 'outcome');
   if (!['approved', 'revision_requested'].includes(outcome)) throw new Error(`Unsupported evaluation outcome: ${outcome}`);
   const event = readJson(resolve(required(values, 'event')), 'evaluation event');
-  const visibleMention = `@${config.slack.agentDisplayName}`;
-  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.includes(visibleMention)) {
-    throw new Error('Evaluation event must contain message text and an explicit verified Reggie mention');
+  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.trim()) {
+    throw new Error('Evaluation event must contain message text and a verified explicit Reggie mention');
   }
   for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Evaluation event is missing ${property}`);
   }
   if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) throw new Error('Evaluation must come from the original requester in the mission channel');
   if (event.mentionedUserId !== config.slack.agentUserId) throw new Error('Evaluation mentions a different Slack member');
+  if (event.senderId === config.slack.agentUserId) throw new Error('Evaluation event was authored by Reggie Agent');
   const messagePermalink = slackPermalinkParts(event.permalink);
   const threadPermalink = slackPermalinkParts(event.threadPermalink);
   const missionThread = slackPermalinkParts(mission.threadPermalink);

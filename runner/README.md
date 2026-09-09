@@ -39,7 +39,9 @@ For each new candidate found through Computer Use, write an event file locally:
 }
 ```
 
-`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention with the configured member ID. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by `Reggie Agent` are always rejected to prevent reply loops.
+`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention whose Slack link resolves to the configured `mentionedUserId`. Slack may expose that mention as a separate member link rather than including `@Reggie Agent` in the captured plain `text`; do not synthesize or prepend mention text. The runner treats `mentionMatched: true` plus an exact configured member-ID match as authoritative. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by the configured Reggie member ID are always rejected to prevent reply loops.
+
+Before invoking `claim` or `evaluate`, add one `:emo_roger:` reaction from Reggie to the qualifying Slack message as an immediate acknowledgement. If that Reggie reaction is already present, do not add it again. The reaction does not replace the single terminal reply in the triggering thread and remains appropriate when a later runner check ignores or rejects the candidate.
 
 Claim it before starting work:
 
