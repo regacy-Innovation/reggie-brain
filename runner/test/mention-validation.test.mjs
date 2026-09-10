@@ -20,6 +20,7 @@ function fixture(overrides = {}) {
     roleId: 'consultant',
     slack: {
       mode: 'computer-use',
+      workspaceId: 'T00000000',
       agentDisplayName: 'Reggie Agent',
       agentUserId,
       permittedChannels: [{ id: channelId, name: 'test-channel' }],
@@ -69,6 +70,56 @@ test('rejects a message authored by the configured Reggie member ID', () => {
   const result = claim(fixture({ senderId: agentUserId }));
   assert.equal(result.status, 1);
   assert.match(result.stderr, /authored by Reggie Agent/);
+});
+
+test('accepts a candidate for the matching workspace-specific Reggie identity', () => {
+  const paths = fixture({ workspaceId: 'T22222222', mentionedUserId: 'U22222222' });
+  writeFileSync(paths.configPath, JSON.stringify({
+    roleId: 'consultant',
+    slack: {
+      mode: 'computer-use',
+      workspaces: [
+        {
+          id: 'T11111111',
+          agentUserId,
+          permittedChannels: [{ id: 'C11111111', name: 'primary-channel' }],
+        },
+        {
+          id: 'T22222222',
+          agentUserId: 'U22222222',
+          permittedChannels: [{ id: channelId, name: 'secondary-channel' }],
+        },
+      ],
+    },
+  }));
+  const result = claim(paths);
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), { action: 'ignored', reason: 'already_seen', messageTs });
+});
+
+test('requires workspaceId when multiple Slack workspaces are configured', () => {
+  const paths = fixture();
+  writeFileSync(paths.configPath, JSON.stringify({
+    roleId: 'consultant',
+    slack: {
+      mode: 'computer-use',
+      workspaces: [
+        {
+          id: 'T11111111',
+          agentUserId,
+          permittedChannels: [{ id: 'C11111111', name: 'primary-channel' }],
+        },
+        {
+          id: 'T22222222',
+          agentUserId: 'U22222222',
+          permittedChannels: [{ id: channelId, name: 'secondary-channel' }],
+        },
+      ],
+    },
+  }));
+  const result = claim(paths);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /workspaceId is required/);
 });
 
 test('accepts thread-root context whose permalink matches the thread', () => {

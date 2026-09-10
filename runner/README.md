@@ -10,7 +10,7 @@ This is not a replacement for a programmatic Slack connection. It does not read 
 
 ## Local configuration
 
-Copy `config/runtime.local.example.json` to the ignored `config/runtime.local.json`. Configure one role ID from `config/roles.yml`, the workspace, `Reggie Agent` display name and member ID, and channels the owner has explicitly permitted. Do not add all visible channels by default.
+Copy `config/runtime.local.example.json` to the ignored `config/runtime.local.json`. Configure one role ID from `config/roles.yml`, then list every owner-approved workspace with that workspace's Reggie display name, member ID, and explicitly permitted channels. Do not add all visible channels by default. The runner still accepts the earlier single-workspace fields for backward compatibility, but new configurations should use `slack.workspaces`.
 
 The initial local configuration for this computer permits only `sys_reggie`. Its initial cursor is set to the latest observed message when the runner is bootstrapped, so history is not replayed.
 
@@ -21,6 +21,7 @@ Bootstrap a newly permitted channel at its latest observed Slack message permali
 ```sh
 node runner/src/index.mjs bootstrap \
   --config config/runtime.local.json \
+  --workspace T00000000 \
   --channel C00000000 \
   --permalink https://workspace.slack.com/archives/C00000000/p1234567890123456
 ```
@@ -29,6 +30,7 @@ For each new candidate found through Computer Use, write an event file locally:
 
 ```json
 {
+  "workspaceId": "T00000000",
   "channelId": "C00000000",
   "permalink": "https://workspace.slack.com/archives/C00000000/p1234567890123456",
   "threadPermalink": "https://workspace.slack.com/archives/C00000000/p1234567890123456",
@@ -44,7 +46,7 @@ For each new candidate found through Computer Use, write an event file locally:
 }
 ```
 
-`mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit `@Reggie Agent` mention whose Slack link resolves to the configured `mentionedUserId`. Slack may expose that mention as a separate member link rather than including `@Reggie Agent` in the captured plain `text`; do not synthesize or prepend mention text. The runner treats `mentionMatched: true` plus an exact configured member-ID match as authoritative. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by the configured Reggie member ID are always rejected to prevent reply loops.
+`workspaceId` is required when more than one workspace is configured. `mentionMatched` may be `true` only after Computer Use has confirmed the visible message contains an explicit Reggie mention whose Slack link resolves to that workspace's configured `mentionedUserId`. Slack may expose that mention as a separate member link rather than including the display name in the captured plain `text`; do not synthesize or prepend mention text. The runner treats `mentionMatched: true` plus an exact workspace-specific member-ID match as authoritative. The candidate must contain the immutable Slack permalink for the exact message. Messages authored by the configured Reggie member ID are always rejected to prevent reply loops.
 
 Before invoking `claim` or `evaluate`, add one `:emo_roger:` reaction from Reggie to the qualifying Slack message as an immediate acknowledgement. If that Reggie reaction is already present, do not add it again. The reaction does not replace the single terminal reply in the triggering thread and remains appropriate when a later runner check ignores or rejects the candidate.
 

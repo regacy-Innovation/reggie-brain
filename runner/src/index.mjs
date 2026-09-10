@@ -8,7 +8,7 @@ const defaultConfigPath = join(brainPath, 'config', 'runtime.local.json');
 const defaultStatePath = join(brainPath, 'runtime', 'poll-state.json');
 
 function usage() {
-  throw new Error('Usage: bootstrap --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | resume --mission <id> --event <file> | record-update --mission <id> --phase <acknowledged|progress|plan_changed|completed> --message-id <id> --delivery-state <state> --summary-file <file> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
+  throw new Error('Usage: bootstrap [--workspace <id>] --channel <id> --permalink <url> | claim --event <file> | next | start --mission <id> | resume --mission <id> --event <file> | record-update --mission <id> --phase <acknowledged|progress|plan_changed|completed> --message-id <id> --delivery-state <state> --summary-file <file> | complete --mission <id> --status <status> --summary-file <file> --delivery-state <state> | evaluate --mission <id> --event <file> --outcome <approved|revision_requested>');
 }
 
 function parseArguments(argumentsList) {
@@ -56,10 +56,26 @@ function loadState(statePath) {
 
 function loadConfig(configPath) {
   const config = readJson(configPath, 'local runtime configuration');
-  const channels = config?.slack?.permittedChannels;
-  if (config?.slack?.mode !== 'computer-use' || typeof config.slack.agentUserId !== 'string' || !config.slack.agentUserId || !Array.isArray(channels) || channels.length === 0) {
-    throw new Error('Local runtime configuration must define a Reggie member ID and computer-use Slack channels');
+  if (config?.slack?.mode !== 'computer-use') throw new Error('Local runtime configuration must use computer-use Slack mode');
+  const configuredWorkspaces = Array.isArray(config.slack.workspaces)
+    ? config.slack.workspaces
+    : [{
+        id: config.slack.workspaceId,
+        name: config.slack.workspaceName,
+        agentDisplayName: config.slack.agentDisplayName,
+        agentUserId: config.slack.agentUserId,
+        permittedChannels: config.slack.permittedChannels,
+      }];
+  if (configuredWorkspaces.length === 0) throw new Error('Local runtime configuration must define at least one Slack workspace');
+  const workspaceIds = new Set();
+  for (const workspace of configuredWorkspaces) {
+    if (typeof workspace?.id !== 'string' || !workspace.id || typeof workspace.agentUserId !== 'string' || !workspace.agentUserId || !Array.isArray(workspace.permittedChannels) || workspace.permittedChannels.length === 0) {
+      throw new Error('Every Slack workspace must define an ID, Reggie member ID, and at least one permitted channel');
+    }
+    if (workspaceIds.has(workspace.id)) throw new Error(`Slack workspace is configured more than once: ${workspace.id}`);
+    workspaceIds.add(workspace.id);
   }
+  config.slack.workspaces = configuredWorkspaces;
   return config;
 }
 
@@ -118,14 +134,22 @@ function timestampKey(timestamp) {
   return `${seconds.padStart(16, '0')}.${fraction.padEnd(6, '0').slice(0, 6)}`;
 }
 
-function permittedChannel(config, channelId) {
-  const matches = config.slack.permittedChannels.filter(channel => channel?.id === channelId);
+function permittedChannel(config, channelId, workspaceId) {
+  if (config.slack.workspaces.length > 1 && !workspaceId) {
+    throw new Error('workspaceId is required when multiple Slack workspaces are configured');
+  }
+  const matches = config.slack.workspaces.flatMap(workspace => {
+    if (workspaceId && workspace.id !== workspaceId) return [];
+    return workspace.permittedChannels
+      .filter(channel => channel?.id === channelId)
+      .map(channel => ({ workspace, channel }));
+  });
   if (matches.length !== 1) throw new Error(`Channel is not explicitly permitted: ${channelId}`);
   return matches[0];
 }
 
-function missionId(channelId, timestamp) {
-  const digest = createHash('sha256').update(`${channelId}:${timestamp}`).digest('hex').slice(0, 12);
+function missionId(workspaceId, channelId, timestamp) {
+  const digest = createHash('sha256').update(`${workspaceId}:${channelId}:${timestamp}`).digest('hex').slice(0, 12);
   return `slack-${timestamp.replace('.', '-')}-${digest}`;
 }
 
@@ -156,7 +180,7 @@ function writeMissionBundle(mission, config) {
     brainSha: currentBrainSha(),
     roleId: mission.roleId,
     roleInstructionPath: mission.roleInstructionPath,
-    workspaceId: config.slack.workspaceId,
+    workspaceId: mission.workspaceId,
     channelId: mission.channelId,
     channelName: mission.channelName,
     messageTs: mission.messageTs,
@@ -174,7 +198,8 @@ function bootstrap(values) {
   const statePath = resolve(values.get('state') || defaultStatePath);
   const config = loadConfig(configPath);
   const channelId = required(values, 'channel');
-  permittedChannel(config, channelId);
+  const workspaceId = values.get('workspace');
+  permittedChannel(config, channelId, workspaceId);
   const permalink = slackPermalinkParts(required(values, 'permalink'));
   if (permalink.channelId !== channelId) throw new Error('Bootstrap permalink does not belong to the configured channel');
   const timestamp = permalink.timestamp;
@@ -196,13 +221,14 @@ function claim(values) {
   for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Candidate event is missing ${property}`);
   }
-  if (event.mentionedUserId !== config.slack.agentUserId) {
+  const permitted = permittedChannel(config, event.channelId, event.workspaceId);
+  if (event.mentionedUserId !== permitted.workspace.agentUserId) {
     throw new Error('Candidate event mentions a different Slack member');
   }
-  if (event.senderId === config.slack.agentUserId) {
+  if (event.senderId === permitted.workspace.agentUserId) {
     throw new Error('Candidate event was authored by Reggie Agent');
   }
-  const channel = permittedChannel(config, event.channelId);
+  const channel = permitted.channel;
   const messagePermalink = slackPermalinkParts(event.permalink);
   const threadPermalink = slackPermalinkParts(event.threadPermalink);
   if (messagePermalink.channelId !== event.channelId || threadPermalink.channelId !== event.channelId) {
@@ -233,10 +259,11 @@ function claim(values) {
   const cursor = state.channels[event.channelId]?.cursor;
   if (!cursor) throw new Error(`Channel has not been bootstrapped: ${event.channelId}`);
   if (timestampKey(messageTs) <= timestampKey(cursor)) return { action: 'ignored', reason: 'already_seen', messageTs };
-  const id = missionId(event.channelId, messageTs);
+  const id = missionId(permitted.workspace.id, event.channelId, messageTs);
   if (state.missions[id]) return { action: 'ignored', reason: 'already_claimed', missionId: id };
   const mission = {
     id,
+    workspaceId: permitted.workspace.id,
     channelId: event.channelId,
     channelName: channel.name,
     messageTs,
@@ -306,7 +333,9 @@ function resume(values) {
   if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) {
     throw new Error('Resume event must come from the original requester in the mission channel');
   }
-  if (event.mentionedUserId !== config.slack.agentUserId || event.senderId === config.slack.agentUserId) {
+  const permitted = permittedChannel(config, event.channelId, event.workspaceId || mission.workspaceId);
+  if (mission.workspaceId && permitted.workspace.id !== mission.workspaceId) throw new Error('Resume event must come from the original mission workspace');
+  if (event.mentionedUserId !== permitted.workspace.agentUserId || event.senderId === permitted.workspace.agentUserId) {
     throw new Error('Resume event must be an explicit mention from another sender');
   }
   const messagePermalink = slackPermalinkParts(event.permalink);
@@ -412,8 +441,10 @@ function evaluate(values) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Evaluation event is missing ${property}`);
   }
   if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) throw new Error('Evaluation must come from the original requester in the mission channel');
-  if (event.mentionedUserId !== config.slack.agentUserId) throw new Error('Evaluation mentions a different Slack member');
-  if (event.senderId === config.slack.agentUserId) throw new Error('Evaluation event was authored by Reggie Agent');
+  const permitted = permittedChannel(config, event.channelId, event.workspaceId || mission.workspaceId);
+  if (mission.workspaceId && permitted.workspace.id !== mission.workspaceId) throw new Error('Evaluation must come from the original mission workspace');
+  if (event.mentionedUserId !== permitted.workspace.agentUserId) throw new Error('Evaluation mentions a different Slack member');
+  if (event.senderId === permitted.workspace.agentUserId) throw new Error('Evaluation event was authored by Reggie Agent');
   const messagePermalink = slackPermalinkParts(event.permalink);
   const threadPermalink = slackPermalinkParts(event.threadPermalink);
   const missionThread = slackPermalinkParts(mission.threadPermalink);

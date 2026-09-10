@@ -2,9 +2,6 @@
   "roleId": "consultant",
   "slack": {
     "mode": "computer-use",
-    "workspaceId": "T00000000",
-    "agentDisplayName": "Reggie Agent",
-    "agentUserId": "U00000000",
     "polling": {
       "timezone": "Asia/Tokyo",
       "officeHours": {
@@ -14,10 +11,18 @@
       },
       "outsideOfficeHoursIntervalMinutes": 30
     },
-    "permittedChannels": [
+    "workspaces": [
       {
-        "id": "C00000000",
-        "name": "sys_reggie"
+        "id": "T00000000",
+        "name": "Example workspace",
+        "agentDisplayName": "Reggie Agent",
+        "agentUserId": "U00000000",
+        "permittedChannels": [
+          {
+            "id": "C00000000",
+            "name": "sys_reggie"
+          }
+        ]
       }
     ]
   }
