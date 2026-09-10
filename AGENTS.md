@@ -118,6 +118,8 @@ Do not use a project absent from `config/projects.yml`. Do not access or modify 
 
 Inspect the relevant project code, data schema, configuration, and actual integration path before proposing a fix or modifying code. Do not infer behavior from names, comments, tests, or a single software layer.
 
+When no specific user request is pending, perform a read-only maintenance review of every accessible project registered in `config/projects.yml`. Review the current working-tree state, recent changes, tests or static checks when inexpensive, and relevant source for defects, duplicated logic, unnecessary complexity, premature abstractions, and maintainability issues. Ground every finding in concrete file and behavior evidence; do not manufacture a finding merely to make work. Report the highest-value candidates to the requester in Slack and ask which item or items they want fixed. Do not modify project code, create a worktree, or open a delivery mission from this routine until the requester explicitly selects a candidate.
+
 Before changing a workflow or data path, create and verify the phase-boundary contract required by the selected project's instructions. It must identify authoritative inputs, selected agent inputs, persisted outputs, downstream requirements, record identities, ordering fields, and user-visible results.
 
 Keep changes limited to the mission. Preserve original inputs and generated outputs. Do not invent fields, states, workflows, defaults, fallbacks, or data mappings. Do not send complete records, secrets, unrelated files, or unbounded data to an LLM.
