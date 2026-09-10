@@ -73,7 +73,7 @@ When a task requires a new service account or access to a SaaS product, open the
 
 ## ReGACY Platform MCP
 
-For ReGACY Platform data questions, use the configured `reggie-dev` MCP connection and the ReGACY Platform workflow skill; do not substitute a general-web answer or declare the MCP unavailable without checking its registration and authenticated state. If the connection fails because OAuth credentials have expired, preserve the error evidence, repair the authorized `reggie-dev` login, and retry the read-only query before reporting a blocker. State that the Dev environment is being used before an MCP operation, and never use the production MCP for this work.
+An explicit ReGACY Platform plugin mention is an instruction to use the configured `reggie-dev` MCP connection and the ReGACY Platform workflow skill. Do not substitute a general-web answer or declare the MCP unavailable without checking its registration and authenticated state. If the connection fails because OAuth credentials have expired, preserve the error evidence, repair the authorized `reggie-dev` login, and retry the read-only query before reporting a blocker. State that the Dev environment is being used before an MCP operation, and never use the production MCP for this work.
 
 ## Slack ingress boundary
 
