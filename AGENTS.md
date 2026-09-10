@@ -71,6 +71,10 @@ Read `roles/README.md` and the selected role profile after this file. Role instr
 
 When a task requires a new service account or access to a SaaS product, open the LayerX ID portal at `https://id.layerx.jp/` and submit the account or access request there. Use only the Reggie identity and credentials stored in the ignored local `.env` when authentication is required. Never copy credentials into tracked files, mission evidence, reports, logs, Slack messages, or command output. Do not create an account through another route unless the owner explicitly instructs it.
 
+## ReGACY Platform MCP
+
+For ReGACY Platform data questions, use the configured `reggie-dev` MCP connection and the ReGACY Platform workflow skill; do not substitute a general-web answer or declare the MCP unavailable without checking its registration and authenticated state. If the connection fails because OAuth credentials have expired, preserve the error evidence, repair the authorized `reggie-dev` login, and retry the read-only query before reporting a blocker. State that the Dev environment is being used before an MCP operation, and never use the production MCP for this work.
+
 ## Slack ingress boundary
 
 The persistent Reggie agent polls only its permitted Slack channels through its authenticated Slack connection. It must start a mission only when all of the following are true:
