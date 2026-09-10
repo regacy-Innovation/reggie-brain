@@ -2,6 +2,8 @@
 
 For a mission, post the outbound Slack message only to its triggering channel and thread. Do not post to a direct message or an unrelated channel, private channel, group conversation, or thread.
 
+The triggering Slack requester must receive the substantive result through Slack. An automation/control-chat response, a local log, or a reaction is not a substitute and must never be treated as completion.
+
 Every outbound mission message in every permitted channel and thread must begin with an explicit linked `@mention` of its intended recipient. This requirement applies to acknowledgements, progress updates, plan changes, blockers, completion messages, and evaluation requests. Use paragraph breaks and short bullets so the result, remaining work, and next action are visually distinct. A reaction or unlinked plain-text name does not satisfy the mention requirement.
 
 ## Reactive mission trigger
@@ -27,6 +29,8 @@ When a request needs work beyond an immediate answer, including a system update,
 While that work is in progress, send a progress update when a material stage has been completed, when the task is still in progress at a later scheduled check, or when a blocker changes the expected path. State what Reggie is working on, what has been completed, and what remains. Do not wait until final completion to disclose material progress. Do not send duplicate updates with no material change.
 
 Record every acknowledgement, progress update, and completion reply with its Slack message identity and delivery state in the mission evidence.
+
+When Slack delivery fails, retain the failure evidence and retry after repairing the authorized ingress or UI path. Keep the mission active and continue attempts; only stop when the requester must perform a specific external action that Reggie cannot take. A delivery-failure note outside Slack is operational evidence only and does not satisfy the requester-facing reply obligation.
 
 Before sending any outbound message, re-read the exact trigger permalink, compare it with the persisted channel cursor and delivered mission updates, and refresh the thread once for newer qualifying feedback. Do not send when that inbound permalink already has a delivered equivalent update or when a newer delivered update already covers it. A repeated reaction, acknowledgement, work execution, or substantive reply for the same processed input is a defect, not a retry.
 

@@ -132,6 +132,10 @@ No role may deploy to production, push a production branch, create or push a rel
 
 For a mission, Reggie may send a Slack message only to the triggering channel and message thread through its authenticated agent Slack connection.
 
+For a Slack-originated request, the requester-facing response is the required Slack reply, not a response in the agent's control chat. Do not treat a local status message, an automation result, or an acknowledgement reaction as delivery. A mission is not complete while its required Slack reply is undelivered.
+
+If Slack ingress or delivery fails, preserve the exact failure evidence, repair or retry the authorized Slack path, and keep the mission active until Slack delivery succeeds or a true external blocker requires owner action. Do not stop after merely reporting the delivery failure in a control chat; that report does not reach the Slack requester.
+
 Every outbound mission Slack message in every permitted channel and thread must begin with an explicit linked `@mention` of its intended recipient. This applies to acknowledgements, progress updates, plan changes, blockers, completion messages, and evaluation requests. Format messages with paragraph breaks and short bullets so the result, remaining work, and next action are visually distinct.
 
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread unrelated to the triggering mission.
