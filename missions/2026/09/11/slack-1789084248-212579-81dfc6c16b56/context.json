@@ -1,0 +1,13 @@
+{
+  "missionId": "slack-1789084248-212579-81dfc6c16b56",
+  "ingress": "computer-use",
+  "brainSha": "d45ebf120cdcae89cf24a67a1010a0ec9d336ff6",
+  "roleId": "developer",
+  "roleInstructionPath": "roles/developer/AGENTS.md",
+  "workspaceId": "T0C0SBTRL5Q",
+  "channelId": "C0C0B256A95",
+  "channelName": "all-regacy-platform-test-team",
+  "messageTs": "1789084248.212579",
+  "threadPermalink": "https://regacyplatfor-khp3218.slack.com/archives/C0C0B256A95/p1789084248212579",
+  "createdAt": "2026-09-11T00:05:52.230Z"
+}
