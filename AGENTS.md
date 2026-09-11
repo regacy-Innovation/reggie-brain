@@ -116,7 +116,7 @@ Read these files before acting:
 6. `roles/README.md` and the selected role profile
 7. Applicable instructions in the selected project worktree when a project is selected
 
-Do not use a project absent from `config/projects.yml`. Do not access or modify another project unless the mission explicitly identifies it and the runner records every selected project.
+Do not use a project absent from `config/projects.yml`. When a request does not name a project, first perform a read-only, evidence-backed resolution across the registered projects to identify the owning repository or repositories; record the evidence and each resolved project before proceeding. Do not modify a project until it has been resolved, recorded, and assigned an isolated mission worktree. Ask the requester only when that resolution remains genuinely ambiguous after the registered-project inspection.
 
 ## Investigation and change discipline
 
