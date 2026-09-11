@@ -110,3 +110,9 @@ node runner/src/index.mjs start --mission <mission-id>
 ```
 
 Then execute it with its original request and saved iteration feedback. It repeats the result and evaluation sequence until approval, cancellation, failure, or `awaiting_owner_input`. The runner stores its cursor and mission index in ignored `runtime/poll-state.json`.
+
+## Mandatory crawl ledger
+
+Before creating any candidate, the scheduler must read `runtime/poll-state.json` and complete a continuity-checked crawl for every configured channel. It must prove that the Slack UI showed the exact saved cursor and every later message through a recorded high-water permalink. Store one ignored per-channel ledger entry with the cursor permalink, high-water permalink, high-water timestamp, scan time, completion state, and the ordered qualifying-message permalinks.
+
+If the saved cursor cannot be found or the interval cannot be read continuously, record an incomplete scan with the gap evidence and retry from the same cursor. Do not use `bootstrap` to jump past an unread interval, and do not call `claim` for a later message in that channel. Once every channel has a complete ledger entry, reconcile each qualifying permalink against `poll-state.json`: it must already map to a mission or have a candidate file. Submit candidates in ascending Slack timestamp order. A high-water ledger entry is not a cursor and must never be used to reject a message.
