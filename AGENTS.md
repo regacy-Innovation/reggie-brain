@@ -33,14 +33,11 @@ This repository contains operating policy, configuration, lightweight versioned 
 - `config/runtime.example.yml`: non-secret example only; real runtime values and secrets remain local and untracked.
 - `roles/`: role-specific instructions selected by `REGGIE_ROLE`.
 - `runner/`: local cursor-backed mission gate used by the temporary Computer Use Slack ingress.
-- `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and reporting.
+- `contracts/`: retained data and lifecycle contracts between Slack, the runner, the coding agent, GitHub, and Linear knowledge documents.
 - `policies/`: mission execution and Slack reporting boundaries.
 - `docs/`: Platform architecture, development conventions, and managed workspace layout.
 - `missions/`: versioned lightweight terminal mission records organized by date and mission ID.
-- `daily-reports/`: immutable, versioned daily activity summaries.
-- `weekly-reports/`: immutable, versioned weekly retrospectives.
-- `monthly-reports/`: immutable, versioned monthly retrospectives.
-- `ideas/`: explicitly captured idea records moving through `inbox`, `accepted`, and `archived`.
+- `daily-reports/`, `weekly-reports/`, `monthly-reports/`, and `ideas/`: historical GitHub records retained for reference; do not add new daily knowledge, reflections, memos, improvement notes, or idea captures here.
 
 Treat paths in `config/projects.yml` and `config/runtime.example.yml` as runner configuration values. Do not rewrite registered paths merely because the current inspection occurs on another operating system. Keep runtime state, credentials, raw logs, large or binary artifacts, and project source out of this repository as required by `docs/local-workspace.md` and `.gitignore`.
 
@@ -49,6 +46,12 @@ Treat paths in `config/projects.yml` and `config/runtime.example.yml` as runner 
 Treat the configured `origin` remote as the source for the current Reggie brain. Fetch it at the beginning of every task or thread. Before starting a runner mission, fast-forward to the fetched revision when the worktree is clean, then record the resulting commit SHA. If local changes prevent a safe update, preserve them and resolve the divergence before relying on a claim that the brain is current.
 
 Every intentional change to this repository must be validated, committed, and pushed to the configured remote before the task ends. Stage only the files changed for the task; do not include unrelated local edits. After pushing, verify that the pushed branch contains the commit. If committing or pushing fails, preserve the change and report the unpublished state as a blocker rather than claiming the update is complete.
+
+## Direction and knowledge storage
+
+The versioned Reggie brain repository on GitHub is the durable source of truth for core behavioral direction: shared and role instructions, policies, contracts, configuration, and approved changes to them. Persist each such change through the normal validated commit-and-push workflow; do not rely on an unversioned note, chat, or Linear document as the authoritative operating direction.
+
+Store day-to-day knowledge gathered during work, reflections, working memos, observations, ideas, and proposed improvements in a Linear document. Update the relevant existing Linear document when one is designated; otherwise create a clearly titled Linear document. Include the date, source or evidence references, and any related mission ID or GitHub commit when available. Do not place this daily knowledge in `reggie-brain`, project repositories, local notes, or Slack. A Linear note is not authorization to change core direction: promote a proposal only after the required review, then commit and push the resulting core-direction change to GitHub.
 
 ## Instruction order
 
@@ -150,9 +153,7 @@ Every outbound mission Slack message in every permitted channel and thread must 
 
 Do not send a direct message. Do not post to another public channel, private channel, group conversation, or thread unrelated to the triggering mission.
 
-Daily, weekly, and monthly retrospective reports and explicitly captured ideas are versioned documents in the Reggie brain repository. Commit and push each report before announcing it in Slack. Commit and push every idea capture or idea-status change.
-
-The retrospective reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo. Use Asia/Tokyo dates for report paths and completed-period labels.
+Store retrospective learning, daily summaries, ideas, and improvement proposals in Linear documents, not as new GitHub report or idea files. The reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo; use Asia/Tokyo dates in the Linear document. Retain only the required non-secret mission evidence in `reggie-brain` and reference the Linear document from that evidence when applicable.
 
 Commit and push the lightweight terminal mission record to the Reggie brain repository. Keep binary and large artifacts, including PowerPoint decks, local. Record each local artifact's path and checksum in the versioned mission record.
 
@@ -179,4 +180,4 @@ When the requester approves, persist the mission as `succeeded`. When the reques
 
 For a qualifying new Slack message, first determine whether its thread belongs to a mission awaiting evaluation. If it does, evaluate that mission instead of creating a new mission. Treat a clear satisfaction confirmation as approval. Treat a change request or dissatisfaction as revision feedback. Do not infer approval from an unclear response.
 
-Only a persisted approved or otherwise terminal record counts as a completed mission. Daily-report delivery requires a separately configured reporting channel.
+Only a persisted approved or otherwise terminal record counts as a completed mission. A Linear knowledge-document update does not replace the required mission evidence or requester-facing delivery.

@@ -87,9 +87,9 @@ A Git push, a successful build, a green check, or an HTTP 200 response is not de
 
 ## Slack operating boundary
 
-Reggie may send Slack messages only to `C074BCJGQGP` (`#dev_system-development-team`). Completion messages, errors, replies, and the daily summary all use this channel. Reggie must not send DMs or post to any other conversation.
+Reggie may send Slack messages only to `C074BCJGQGP` (`#dev_system-development-team`). Completion messages, errors, replies, and any permitted summary all use this channel. Reggie must not send DMs or post to any other conversation. Daily knowledge and retrospectives are stored in Linear documents rather than versioned GitHub reports.
 
-The runner sends one completion message from the persisted terminal mission record. At 09:00 UTC, which is 18:00 Asia/Tokyo, it posts a summary of activity in the preceding 24 hours only when activity exists.
+The runner sends one completion message from the persisted terminal mission record. At 09:00 UTC, which is 18:00 Asia/Tokyo, it updates the designated Linear knowledge document with activity from the preceding 24 hours; any Slack summary is optional and links to that document.
 
 ## Local source layout
 

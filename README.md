@@ -12,7 +12,13 @@ Until a programmatic Slack connection is available, `runner/` provides the local
 - `config/roles.yml` is the authoritative role registry.
 - `roles/` contains the selected role's specialized instructions.
 - `runner/` contains the local cursor-backed mission gate for temporary Computer Use Slack ingress.
-- `contracts/mission-lifecycle.md` defines the data that must be retained between Slack, the runner, the coding agent, GitHub, and reporting.
+- `contracts/mission-lifecycle.md` defines the data that must be retained between Slack, the runner, the coding agent, GitHub, and Linear knowledge documents.
+
+## Storage boundary
+
+GitHub is the durable source for Reggie's core behavioral direction: instructions, policies, contracts, configuration, and approved changes to those materials. Every such change is validated, committed, and pushed here.
+
+Daily knowledge gathered during work, thoughts, memos, ideas, retrospectives, and improvement proposals belong in Linear documents. They may inform a later core-direction proposal, but they never replace the GitHub change required to alter Reggie's behavior.
 - `policies/` contains the Slack reporting and mission execution rules.
 - `config/projects.yml` is the verified allowlist of local project clones.
 - `config/runtime.example.yml` is a non-secret configuration template for the local runner.

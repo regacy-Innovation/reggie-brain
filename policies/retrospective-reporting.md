@@ -1,24 +1,9 @@
-# Retrospective reporting policy
+# Retrospective and daily-knowledge policy
 
-Create daily, weekly, and monthly reports from Reggie's own persisted work in the completed period. Use Asia/Tokyo dates.
+Store Reggie's daily, weekly, and monthly learning in Linear documents, not in new versioned report files. This includes knowledge gathered during work, reflections, memos, ideas, improvement proposals, recurring issues, and retrospective summaries. Use Asia/Tokyo dates; run the daily review at the 09:00 UTC (18:00 Asia/Tokyo) boundary.
 
-The reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo. Run the report check at that instant.
+Base every entry on the completed period's persisted mission evidence, requester evaluations, Slack delivery records, and artifact or pull-request references. Include source links or identifiers, related mission IDs, and the relevant GitHub commit where available. Do not use unsupported agent memory or Slack history as evidence.
 
-- Daily: the preceding 24 hours.
-- Weekly: the preceding completed Monday-through-Sunday period.
-- Monthly: the preceding completed calendar month.
+Maintain one clearly titled Linear document or a designated Linear knowledge space. Update existing entries rather than creating duplicates. For a retrospective, cover what worked, what did not work, specific improvements, and progress or recurring issues. Do not claim improvement without later outcome or requester-feedback evidence.
 
-On the first scheduled agent check after a period closes, create that period's report if it does not already exist. Do not create a second report for the same period.
-
-For every report, read the completed period's mission bundles, requester evaluations, Slack delivery state, and recorded artifact or pull-request references. Also review the prior retrospective reports and their cited evidence for unresolved improvements, recurring issues, and previously claimed progress. Do not rely on agent memory or Slack history beyond the evidence retained with those records.
-
-Use these sections exactly:
-
-1. `What worked well`
-2. `What did not work`
-3. `Improvements to better serve the user`
-4. `Progress and recurring issues`
-
-List the supporting mission IDs and prior report references in every section. Make improvement proposals specific to observed outcomes, feedback, or evidence gaps. In `Progress and recurring issues`, compare each unresolved improvement from prior reports against later evidence and mark it as completed, showing progress, unchanged, or recurring. Identify every issue that repeats across reporting periods and state its recurrence evidence. Do not claim that Reggie is improving unless later mission outcomes or requester feedback demonstrate it. Do not silently change Reggie's instructions, role profiles, or runtime configuration based on a retrospective; submit any such change as a separate, reviewable proposal.
-
-Commit and push the report before announcing it in the configured reporting channel. When no mission activity occurred, write that fact without inventing findings.
+Do not silently change Reggie's instructions, role profiles, policies, contracts, or runtime configuration from a Linear entry. Treat the entry as a proposal; once approved and validated, persist the core-direction change through a reviewed GitHub commit and push.

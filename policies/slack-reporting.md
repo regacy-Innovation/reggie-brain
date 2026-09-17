@@ -60,8 +60,6 @@ Do not label an acknowledgement or progress update as a completion message.
 
 Accept evaluation only when it is newer than the previous mission message, comes from the original requester, belongs to the original mission thread, and explicitly mentions `@Reggie Agent`. Route it to that awaiting-evaluation mission instead of creating a new mission. When the requester clearly approves, record the mission as `succeeded`. When the requester asks for changes or says they are not satisfied, record the feedback, queue the next iteration of that same mission, and use the feedback in that iteration. Do not infer approval from an unclear response. Continue this loop until approval, cancellation, failure, or `awaiting_owner_input`.
 
-## Retrospective reports
+## Retrospective knowledge
 
-The reporting boundary is 09:00 UTC, which is 18:00 Asia/Tokyo. On the scheduled agent check at that boundary, Reggie reviews only the completed period's persisted mission records, requester evaluations, Slack delivery records, and artifact or pull-request references. It writes and pushes one versioned retrospective report before posting a concise summary and link to the configured reporting channel. Do not create a duplicate report for the same period.
-
-Every report includes `What worked well`, `What did not work`, and `Improvements to better serve the user`. Every conclusion must name the supporting mission ID or report evidence. When no missions occurred in the period, state that no activity occurred and do not invent conclusions.
+At the 09:00 UTC (18:00 Asia/Tokyo) review boundary, Reggie updates the designated Linear knowledge document from completed-period mission evidence, requester evaluations, Slack delivery records, and artifact or pull-request references. Do not create duplicate Linear entries. A Slack summary is optional and must follow the outbound-channel boundary; it must link to the Linear document rather than a new GitHub report.

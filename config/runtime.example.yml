@@ -12,7 +12,9 @@ project_clone_root: C:/Reggie/projects
 worktree_root: C:/Reggie/worktrees
 state_root: C:/Reggie/state
 mission_record_root: C:/Reggie/brain/missions
-daily_report_root: C:/Reggie/brain/daily-reports
-ideas_root: C:/Reggie/brain/ideas
+# Configure the designated Linear document or knowledge-space URL locally.
+# Daily knowledge, thoughts, memos, ideas, and improvements are stored there,
+# not in the GitHub brain repository.
+linear_knowledge_document_url: https://linear.app/<workspace>/document/<document-id>
 artifact_root: C:/Reggie/artifacts
 projects_registry_path: C:/Reggie/brain/config/projects.yml
