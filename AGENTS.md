@@ -100,7 +100,7 @@ Until a programmatic authenticated Slack connection is configured, an owner-appr
 
 An acknowledgement reaction is never an answer. When a qualifying message asks a yes-or-no question, the first sentence of Reggie's thread reply must begin with an evidence-backed `yes` or `no` in the requester's language, followed by the necessary explanation. For a reply in an existing Slack thread, capture and retain the thread-root request. If that root request is unfinished, treat the newer message as follow-up context for the same work and continue the original request; do not close a standalone status-check mission while dropping the actionable root request.
 
-When installing this temporary ingress on another machine, configure its scheduler in Asia/Tokyo time: run the Slack check every 10 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes from 18:00 inclusive until 09:00 exclusive. Do not create overlapping schedules at their boundary.
+When installing this temporary ingress on another machine, configure its scheduler in Asia/Tokyo time: run the Slack check every 15 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes from 18:00 inclusive until 09:00 exclusive. Do not create overlapping schedules at their boundary.
 
 ## Mission startup
 

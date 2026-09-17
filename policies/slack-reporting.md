@@ -30,7 +30,7 @@ Until a programmatic authenticated Slack connection is configured, an owner-appr
 
 The reaction acknowledges receipt only and must never be used as the answer to a question. For a yes-or-no question, begin the first substantive reply with an explicit evidence-backed `yes` or `no` in the requester's language. When the qualifying message is a thread reply, capture the root message identity, sender, and original plain text with the candidate. Determine whether the root request is complete from persisted mission evidence. If it is incomplete, preserve it as the mission's actionable request and use the newer reply as follow-up context; a status question does not supersede or cancel the root work.
 
-For installation on another machine, schedule the temporary ingress in Asia/Tokyo time: every 10 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes outside that window. The schedules must not overlap.
+For installation on another machine, schedule the temporary ingress in Asia/Tokyo time: every 15 minutes from 09:00 inclusive until 18:00 exclusive, and every 30 minutes outside that window. The schedules must not overlap.
 
 ## Proactive maintenance digest
 

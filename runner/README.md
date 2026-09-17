@@ -4,7 +4,7 @@ This dependency-free Node runner is the durable mission gate for the temporary C
 
 ## Polling schedule
 
-When installing the heartbeat on another machine, configure it in `Asia/Tokyo`: every 10 minutes from 09:00 inclusive to 18:00 exclusive, and every 30 minutes outside those hours. The sample local configuration records this required cadence under `slack.polling`; the runner does not schedule itself.
+When installing the heartbeat on another machine, configure it in `Asia/Tokyo`: every 15 minutes from 09:00 inclusive to 18:00 exclusive, and every 30 minutes outside those hours. The sample local configuration records this required cadence under `slack.polling`; the runner does not schedule itself.
 
 This is not a replacement for a programmatic Slack connection. It does not read Slack or send a reply itself; Computer Use performs those UI actions while this runner preserves the authorization and delivery record.
 
