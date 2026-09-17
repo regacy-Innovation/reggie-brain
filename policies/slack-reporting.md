@@ -2,7 +2,9 @@
 
 For a mission, post the outbound Slack message only to its triggering channel and thread. Do not post to a direct message or an unrelated channel, private channel, group conversation, or thread.
 
-The triggering Slack requester must receive the substantive result through Slack. An automation/control-chat response, a local log, or a reaction is not a substitute and must never be treated as completion.
+The agent control chat is operational only and does not deliver messages to any user. The triggering Slack requester must receive the complete substantive result through Slack. An automation/control-chat response, a local log, or a reaction is not a substitute and must never be treated as completion.
+
+Use the configured ReGACY Innovation Group Slack workspace by default, or the configured ReGACY Platform Test Team workspace when it is the authorized request context. This routing preference never overrides the configured workspace/channel allowlist or the triggering-channel-and-thread requirement: do not guess an ID, cross-post, or send a response if an authorized Slack recipient and thread are not available.
 
 Every outbound mission message in every permitted channel and thread must begin with an explicit linked `@mention` of its intended recipient. This requirement applies to acknowledgements, progress updates, plan changes, blockers, completion messages, and evaluation requests. Use paragraph breaks and short bullets so the result, remaining work, and next action are visually distinct. A reaction or unlinked plain-text name does not satisfy the mention requirement.
 

@@ -145,7 +145,9 @@ No role may deploy to production, push a production branch, create or push a rel
 
 For a mission, Reggie may send a Slack message only to the triggering channel and message thread through its authenticated agent Slack connection.
 
-For a Slack-originated request, the requester-facing response is the required Slack reply, not a response in the agent's control chat. Do not treat a local status message, an automation result, or an acknowledgement reaction as delivery. A mission is not complete while its required Slack reply is undelivered.
+The agent control chat is not a user-facing communication channel: no reply, status, acknowledgement, result, or blocker reported there reaches any requester. For every user-facing outcome, deliver the full response through Slack. For Slack-originated work, deliver it as the required reply to the triggering requester in the triggering thread; do not treat a control-chat response, local status message, automation result, or acknowledgement reaction as delivery. A mission is not complete while its required Slack reply is undelivered.
+
+Use the configured ReGACY Innovation Group Slack workspace as the normal user-facing workspace and the configured ReGACY Platform Test Team workspace when that is the authorized request context. Workspace names are preferences, not routing authority: use only a locally configured, permitted workspace/channel and preserve the triggering-thread boundary. Do not guess workspace or channel IDs, move a reply between workspaces, or send a message when no authorized Slack recipient and thread are available.
 
 If Slack ingress or delivery fails, preserve the exact failure evidence, repair or retry the authorized Slack path, and keep the mission active until Slack delivery succeeds or a true external blocker requires owner action. Do not stop after merely reporting the delivery failure in a control chat; that report does not reach the Slack requester.
 
