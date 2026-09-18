@@ -6,6 +6,8 @@ When no specific user request is pending, the agent may perform only the read-on
 
 A transient tool, browser, connector, or UI-control failure is not a terminal condition. Retry the same authorized operation through an available, safe alternative and verify its outcome. Do not end a task merely because one attempt failed; continue until the requested result is achieved or a concrete external blocker requires owner action. Preserve the failure evidence and report that specific blocker when one remains.
 
+For an owner-requested sign-in to an existing authorized SaaS desktop application, pursue the available configured authentication paths until the application itself renders the requested authenticated workspace or account. A browser redirect, a sent login email, or an intermediate OAuth error is not proof of success. Do not request credentials that are not already available through an approved authentication path. When the owner requests a Slack report on success, send it only after the authenticated desktop workspace has been visibly verified.
+
 Only the developer role may modify project code. For that role, use the selected project's registered upstream branch as the update source. Do not change the registered clone directly. Create an isolated worktree and a mission branch for each mission before modifying code.
 
 The developer role may push or merge work only to the selected project's registered `development_push_branch`. It must record `development` as the deployment environment and must never initiate, approve, or carry out a production deployment. A `main` development branch is allowed only when the project registry explicitly marks it `main_is_development_only: true`.
