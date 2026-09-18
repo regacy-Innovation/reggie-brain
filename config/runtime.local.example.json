@@ -2,6 +2,11 @@
   "roleId": "consultant",
   "slack": {
     "mode": "computer-use",
+    "delivery": {
+      "transport": "ai-service-endpoint",
+      "endpoint": "/api/project-operations/slack-messages",
+      "environment": "development"
+    },
     "polling": {
       "timezone": "Asia/Tokyo",
       "officeHours": {

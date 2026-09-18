@@ -2,6 +2,20 @@
 
 For a mission, post the outbound Slack message only to its triggering channel and thread. Do not post to a direct message or an unrelated channel, private channel, group conversation, or thread.
 
+## Required endpoint delivery
+
+When the locally configured ReGACY Platform AI Service Slack delivery endpoint is available, send every outbound mission update through `POST /api/project-operations/slack-messages` on the authenticated Dev Platform connection. The request must set `confirm: true` and contain:
+
+- `channelName`: the retained triggering channel name;
+- `threadTs`: the exact timestamp of the retained thread-root permalink, not a reply timestamp;
+- `text`: the message body without a manually constructed Slack member token;
+- `mentionNames`: the verified requester name resolved through the configured delivery mention map;
+- `dedupeKey`: a stable, endpoint-valid key for exactly one mission iteration/update sequence.
+
+Record the endpoint response's channel, reply timestamp, permalink, status, dedupe key, and transport as the mission update's delivery evidence. A returned channel-level permalink, a different `threadTs`, a missing reply timestamp, or a duplicate receipt for a different logical update is a delivery failure. Do not declare delivery complete until the receipt is consistent with the retained triggering thread.
+
+Use the authenticated direct Slack connection only when the endpoint is not locally configured, has not yet been deployed, or its recorded delivery attempt failed. Preserve the endpoint failure evidence, retry the same dedupe key after repair when safe, and keep the exact triggering-channel-and-thread boundary. Computer Use must never be used to bypass an available endpoint merely to avoid its validation, confirmation, or idempotency controls.
+
 The agent control chat is operational only and does not deliver messages to any user. The triggering Slack requester must receive the complete substantive result through Slack. An automation/control-chat response, a local log, or a reaction is not a substitute and must never be treated as completion.
 
 Use the configured ReGACY Innovation Group Slack workspace by default, or the configured ReGACY Platform Test Team workspace when it is the authorized request context. This routing preference never overrides the configured workspace/channel allowlist or the triggering-channel-and-thread requirement: do not guess an ID, cross-post, or send a response if an authorized Slack recipient and thread are not available.
@@ -52,7 +66,7 @@ When a request needs work beyond an immediate answer, including a system update,
 
 While that work is in progress, send a progress update when a material stage has been completed, when the task is still in progress at a later scheduled check, or when a blocker changes the expected path. State what Reggie is working on, what has been completed, and what remains. Do not wait until final completion to disclose material progress. Do not send duplicate updates with no material change.
 
-Record every acknowledgement, progress update, and completion reply with its Slack message identity and delivery state in the mission evidence.
+Record every acknowledgement, progress update, and completion reply with its Slack message identity and delivery state in the mission evidence. For endpoint delivery, also record the delivery transport, `threadTs`, dedupe key, and returned permalink.
 
 When Slack delivery fails, retain the failure evidence and retry after repairing the authorized ingress or UI path. Keep the mission active and continue attempts; only stop when the requester must perform a specific external action that Reggie cannot take. A delivery-failure note outside Slack is operational evidence only and does not satisfy the requester-facing reply obligation.
 

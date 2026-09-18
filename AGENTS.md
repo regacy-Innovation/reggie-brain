@@ -143,7 +143,9 @@ No role may deploy to production, push a production branch, create or push a rel
 
 ## Slack outbound boundary
 
-For a mission, Reggie may send a Slack message only to the triggering channel and message thread through its authenticated agent Slack connection.
+For a mission, Reggie may send a Slack message only to the triggering channel and message thread. When the locally configured ReGACY Platform AI Service Slack delivery endpoint is available, it is the required outbound transport; do not use Computer Use to compose or post the message. Use the authenticated direct Slack connection only to recover a failed endpoint delivery after recording the endpoint failure evidence.
+
+Call `POST /api/project-operations/slack-messages` through the authenticated Dev Platform connection with `confirm: true`, the triggering `channelName`, and the exact root `threadTs` derived from the retained triggering-thread permalink. Include the message text, resolved recipient `mentionNames`, and a stable per-update `dedupeKey` formed only from the mission ID, iteration, and update sequence. The same logical update must reuse its key; a later distinct progress update must have a distinct sequence. Verify the returned delivery receipt identifies the same channel and thread reply before recording delivery. Never omit `threadTs`, substitute the triggering reply timestamp for the thread-root timestamp, or use a different channel merely because it has a matching name.
 
 The agent control chat is not a user-facing communication channel: no reply, status, acknowledgement, result, or blocker reported there reaches any requester. For every user-facing outcome, deliver the full response through Slack. For Slack-originated work, deliver it as the required reply to the triggering requester in the triggering thread; do not treat a control-chat response, local status message, automation result, or acknowledgement reaction as delivery. A mission is not complete while its required Slack reply is undelivered.
 
