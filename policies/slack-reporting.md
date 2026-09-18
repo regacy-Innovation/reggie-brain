@@ -16,7 +16,7 @@ Record the endpoint response's channel, reply timestamp, permalink, status, dedu
 
 Use the authenticated direct Slack connection only when the endpoint is not locally configured, has not yet been deployed, or its recorded delivery attempt failed. Preserve the endpoint failure evidence, retry the same dedupe key after repair when safe, and keep the exact triggering-channel-and-thread boundary. Computer Use must never be used to bypass an available endpoint merely to avoid its validation, confirmation, or idempotency controls.
 
-The agent control chat is operational only and does not deliver messages to any user. The triggering Slack requester must receive the complete substantive result through Slack. An automation/control-chat response, a local log, or a reaction is not a substitute and must never be treated as completion.
+The agent control chat is operational only and does not deliver messages to any user. Treat every result, status, or promise written there as undelivered until the corresponding substantive update has been posted and verified in the authorized Slack thread. The triggering Slack requester must receive the complete substantive result through Slack. An automation/control-chat response, a local log, or a reaction is not a substitute and must never be treated as completion.
 
 Use the configured ReGACY Innovation Group Slack workspace by default, or the configured ReGACY Platform Test Team workspace when it is the authorized request context. This routing preference never overrides the configured workspace/channel allowlist or the triggering-channel-and-thread requirement: do not guess an ID, cross-post, or send a response if an authorized Slack recipient and thread are not available.
 
