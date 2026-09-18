@@ -324,10 +324,10 @@ function resume(values) {
     throw new Error(`Mission is not awaiting owner input: ${id}`);
   }
   const event = readJson(resolve(required(values, 'event')), 'resume event');
-  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.trim()) {
-    throw new Error('Resume event must contain message text and a verified explicit Reggie mention');
+  if (typeof event?.text !== 'string' || !event.text.trim()) {
+    throw new Error('Resume event must contain message text');
   }
-  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
+  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Resume event is missing ${property}`);
   }
   if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) {
@@ -335,8 +335,11 @@ function resume(values) {
   }
   const permitted = permittedChannel(config, event.channelId, event.workspaceId || mission.workspaceId);
   if (mission.workspaceId && permitted.workspace.id !== mission.workspaceId) throw new Error('Resume event must come from the original mission workspace');
-  if (event.mentionedUserId !== permitted.workspace.agentUserId || event.senderId === permitted.workspace.agentUserId) {
-    throw new Error('Resume event must be an explicit mention from another sender');
+  if (event.senderId === permitted.workspace.agentUserId) {
+    throw new Error('Resume event was authored by Reggie Agent');
+  }
+  if (event.mentionMatched === true && event.mentionedUserId !== permitted.workspace.agentUserId) {
+    throw new Error('Resume event mentions a different Slack member');
   }
   const messagePermalink = slackPermalinkParts(event.permalink);
   const threadPermalink = slackPermalinkParts(event.threadPermalink);
@@ -434,17 +437,19 @@ function evaluate(values) {
   const outcome = required(values, 'outcome');
   if (!['approved', 'revision_requested'].includes(outcome)) throw new Error(`Unsupported evaluation outcome: ${outcome}`);
   const event = readJson(resolve(required(values, 'event')), 'evaluation event');
-  if (!event?.mentionMatched || typeof event.text !== 'string' || !event.text.trim()) {
-    throw new Error('Evaluation event must contain message text and a verified explicit Reggie mention');
+  if (typeof event?.text !== 'string' || !event.text.trim()) {
+    throw new Error('Evaluation event must contain message text');
   }
-  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId', 'mentionedUserId']) {
+  for (const property of ['channelId', 'permalink', 'threadPermalink', 'senderId']) {
     if (typeof event[property] !== 'string' || !event[property]) throw new Error(`Evaluation event is missing ${property}`);
   }
   if (event.channelId !== mission.channelId || event.senderId !== mission.senderId) throw new Error('Evaluation must come from the original requester in the mission channel');
   const permitted = permittedChannel(config, event.channelId, event.workspaceId || mission.workspaceId);
   if (mission.workspaceId && permitted.workspace.id !== mission.workspaceId) throw new Error('Evaluation must come from the original mission workspace');
-  if (event.mentionedUserId !== permitted.workspace.agentUserId) throw new Error('Evaluation mentions a different Slack member');
   if (event.senderId === permitted.workspace.agentUserId) throw new Error('Evaluation event was authored by Reggie Agent');
+  if (event.mentionMatched === true && event.mentionedUserId !== permitted.workspace.agentUserId) {
+    throw new Error('Evaluation mentions a different Slack member');
+  }
   const messagePermalink = slackPermalinkParts(event.permalink);
   const threadPermalink = slackPermalinkParts(event.threadPermalink);
   const missionThread = slackPermalinkParts(mission.threadPermalink);
