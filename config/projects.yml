@@ -90,3 +90,9 @@ projects:
     upstream_branch: develop
     development_push_branch: develop
     main_is_development_only: false
+  - id: regacy-platform-worker-powerpoint-generate
+    local_path: C:/Users/tomoy/Sites/duneall/regacy-platform-worker-powerpoint-generate
+    origin: https://github.com/regacy-Innovation/regacy-platform-worker-powerpoint-generate.git
+    upstream_branch: develop
+    development_push_branch: develop
+    main_is_development_only: false
